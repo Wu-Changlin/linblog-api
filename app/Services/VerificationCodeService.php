@@ -28,15 +28,15 @@ $an=new ValidateCode (6,200,50);
 $an->ext_pixel = true; //干扰点
 $an->ext_line = false; //干扰线
 $an->ext_rand_y= true; //Y轴随机
-$random_number = mt_rand(0, 255);
-$an->red = $random_number;
-$an->green = $random_number;
-$an->blue = $random_number;
+$random_number_array =rgbRandomNumbers();
+$an->red = $random_number_array[0];
+$an->green = $random_number_array[1];
+$an->blue = $random_number_array[2];
 
 
-$Verification_code_base64_str=$an->create();
 
-return $Verification_code_base64_str;
+$verification_code_data=$an->create();
+return $verification_code_data;
 
 
 

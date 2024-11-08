@@ -130,8 +130,13 @@ ob_start();
 $image_data = ob_get_clean();
 $base64_image = base64_encode($image_data);
 imagedestroy($this->im); //释放图像资源
-// 输出Base64编码的字符串
-return $base64_image;
+// 输出验证码图片Base64编码的字符串和验证码
+$data=[
+  "validate_code_path"=>'data:image/png;base64,'.$base64_image,
+  "validate_code"=>$this->rand_num
+
+];
+return  $data;
 
     // return $this->rand_num;
   }/*  */

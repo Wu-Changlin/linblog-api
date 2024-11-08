@@ -31,12 +31,25 @@ class LoginController extends Controller
     public function index(){
        // $this->senderr('你好',200);
     echo 111;
-    $data= $this->verificationCodeService->index();
-
-    echo '<img src="data:image/png;base64,' . $data . '" alt="Image" />';
 
 
+    $verification_code_service_data= $this->verificationCodeService->index();
 
+    echo '验证码：'.$verification_code_service_data['validate_code'];
+    echo '<img src="'.$verification_code_service_data["validate_code_path"].'" alt="Image" />';
+
+    }
+
+
+    /**
+     *获取验证码
+     */
+    public function getVerificationCode(){
+        // $this->senderr('你好',200);
+    echo "getVerificationCode:";
+    $verification_code_service_data= $this->verificationCodeService->index();
+    echo '验证码：'.$verification_code_service_data['validate_code'];
+    echo '<img src="'.$verification_code_service_data["validate_code_path"].'" alt="Image" />';
 
     }
 

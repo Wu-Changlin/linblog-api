@@ -23,8 +23,15 @@ use \App\Http\Controllers\Api\V1\Backend\LoginController;
 */
 
 
-Route::apiResource('users', UserController::class);
-Route::apiResource('login', LoginController::class);
+
+
+Route::get('/users/index', [UserController::class, 'index']);
+Route::get('/login/index', [LoginController::class, 'index']);
+Route::get('/login/getVerificationCode', [LoginController::class, 'getVerificationCode']);
+
+
+
+
 // http://localhost:9090/api/users
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
