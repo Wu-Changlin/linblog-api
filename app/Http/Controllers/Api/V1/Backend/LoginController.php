@@ -19,12 +19,13 @@ class LoginController extends Controller
 
     protected $userService; protected $verificationCodeService;
 
-    public function __construct(UserService $userService,VerificationCodeService $verificationCodeService)
+    public function __construct()
     {
-        $this->userService = $userService;
-        $this->verificationCodeService = $verificationCodeService;
 
+        $this->userService = new UserService(); 
+        $this->verificationCodeService = new VerificationCodeService(); 
     }
+
     /**
      *显示博客后台登录页面
      */
