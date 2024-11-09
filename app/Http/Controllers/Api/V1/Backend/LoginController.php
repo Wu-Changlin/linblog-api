@@ -9,6 +9,8 @@ use App\Services\UserService;
 use App\Services\VerificationCodeService;
 
 
+use Firebase\JWT\JWT;
+use Firebase\JWT\ExpiredException;
 /**
  * Class LoginController  博客后台登录和退出   保证用户信息安全用psot请求
  * @package App\Http\Controllers\Api\V1\Backend\UserController 
@@ -60,12 +62,22 @@ class LoginController extends Controller
      *博客后台登录操作   (用户或管理员登录)
      * post  $user_name 用户名称(用户邮箱)  $password 用户密码  $verification _code 登录验证码 动态生成
      */
-    public function logIn(loginRequest $request)
+    public function logIn(Request $request)
     {
 
-        echo 111;
-
-
+        $key = '344'; //key，唯一标识
+        $time = time(); //当前时间
+        $token = [
+            'iat' => $time, //签发时间
+            'nbf' => $time , //(Not Before)：某个时间点后才能访问，比如设置time+30，表示当前时间30秒后才能使用
+            'exp' => $time+7200, //过期时间,这里设置2个小时
+            'data' => [ //自定义信息，不要定义敏感信息
+                'device_id' => 'asdfghj',
+            ]
+        ];
+        $token = JWT::encode($token, $key,'HS256'); //签发token
+        $data = ['error'=>0,'mgs'=>'success','data'=>['token'=>$token]];
+        return json_encode($data);
         // if ($request->isMethod('post')) {//判断请求方式是post
         //     $input = $request->except('s','_token'); //去除 s：路由地址 ，_token： 表单中包含一个隐藏的 CSRF 令牌字段
         //     $login['email'] = isset($input['email']) ? $input['email'] : "";
