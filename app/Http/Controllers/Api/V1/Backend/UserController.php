@@ -29,7 +29,7 @@ class UserController extends Controller
             ]
         ];
 
-    $this->sendMSG('OK',200, $user);
+    sendMSG('OK',200, $user);
         // return response()->json(['user' => $user], 201);
     }
  
@@ -43,6 +43,5 @@ class UserController extends Controller
     }
 
 
- 
     // 其他路由方法
 }

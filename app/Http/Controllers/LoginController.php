@@ -1,5 +1,6 @@
 <?php
-namespace App\Http\Controllers\Api\V1\Backend;
+namespace App\Http\Controllers;
+
 use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
@@ -32,16 +33,19 @@ class LoginController extends Controller
      *显示博客后台登录页面
      */
     public function index(){
-       // $this->senderr('你好',200);
-    echo 111;
+    // 使用HMAC生成SHA-256哈希值的函数
 
 
-    $verification_code_service_data= $this->verificationCodeService->index();
-
-    echo '验证码：'.$verification_code_service_data['validate_code'];
-    echo '<img src="'.$verification_code_service_data["validate_code_path"].'" alt="Image" />';
+// 示例使用
+$data = "1111000101000011001101110110011100110110100011000000100010110010000010110111101011110010100111001000011010110101100010010100001101011011011101010101100001010010100000101001100101100000100110100110010110101101000110011110111111000001010100110100001101100001010110110100001111001011010100110100001101100001010";
+$secretKey = "7e0fa9e711273fab363634f348d936ba2e32a3148dd98567d52fe2a4c3cc008c";
+$hash = hash('sha256', (hash_hmac('sha256', $data, $secretKey))) ;
+echo $hash; // 输出哈希值
 
     }
+
+
+    
 
 
     /**
@@ -49,7 +53,11 @@ class LoginController extends Controller
      */
     public function getVerificationCode(){
         // $this->senderr('你好',200);
-    echo "getVerificationCode:";
+
+
+    sendErrorMSG('403Sign','');
+    die;
+
     $verification_code_service_data= $this->verificationCodeService->index();
     echo '验证码：'.$verification_code_service_data['validate_code'];
     echo '<img src="'.$verification_code_service_data["validate_code_path"].'" alt="Image" />';

@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 // use \App\Http\Controllers\Api\UserController;
 
 use \App\Http\Controllers\Api\V1\Backend\UserController;
-use \App\Http\Controllers\Api\V1\Backend\LoginController;
+use \App\Http\Controllers\LoginController;
 
 
 // use App\Http\Controllers\Api\v1\backend\UserController;
@@ -23,7 +23,10 @@ use \App\Http\Controllers\Api\V1\Backend\LoginController;
 
 // Route::get('/users/index', [UserController::class, 'index']);
 // Route::get('/login/index', [LoginController::class, 'index']);
-// Route::get('/login/getVerificationCode', [LoginController::class, 'getVerificationCode']);
+Route::get('/login/getVerificationCode', [LoginController::class, 'getVerificationCode']);
+Route::get('/login/logIn', [LoginController::class, 'logIn']);
+
+
 // http://localhost:9090/api/users
 
 // $_mp='api';
@@ -46,15 +49,12 @@ use \App\Http\Controllers\Api\V1\Backend\LoginController;
 //     });
 // });
 
-
+// ->middleware('admin.login','checkrbac')
 // 用户登录后台
-Route::prefix('backend')->group(function () {
-
-
+Route::prefix('backend')->middleware('checkIp')->group(function () {
     Route::match(['GET', 'POST'], '/{controller}/{action}', function($controller, $action) {
-        // http://localhost:9090/api/user/index
-        
-        /* 
+
+    /* 
     生成一个request对象。在 Laravel 框架中，需要通过 Request 对象来获取用户请求信息，
         该对象引用的完整类名是 Illuminate\Http\Request，
         而该请求类又继承自 Symfony 的 Symfony\Component\HttpFoundation\Request
@@ -79,29 +79,6 @@ Route::prefix('backend')->group(function () {
                 }
                 die('No route found , Please check url parameters');
         
-
-
-            
-            // $request = app('request');
-            //     // 创建参数数组
-            
-            
-            //     // 获取控制器实例
-            //     $controllerInstance = app()->make('App\Http\Controllers\Api\V1\backend\\' . ucfirst($controller) . 'Controller');
-            
-            
-        
-            // // 使用反射获取方法
-            // $reflectionMethod = new \ReflectionMethod($controllerInstance, $action);
-            
-            // // 检查方法是否可调用
-            // if ($reflectionMethod->isPublic() && !$reflectionMethod->isAbstract()) {
-            //     // 调用方法
-            //     return $reflectionMethod->invokeArgs($controllerInstance, $request);
-            // }
-        
-            // // 方法不存在或不可调用
-            // return 'Method not found or not accessible.';
         });
         
 
