@@ -43,8 +43,23 @@ class Handler extends ExceptionHandler
      */
     public function register()
     {
+ 
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    // 访问在 Laravel 中为不存在的控制器返回自定义的 404 JSON 响应
+    // 这段代码会检测是否抛出了 NotFoundHttpException 异常，
+    // 如果是，则返回一个包含错误消息的 JSON 响应。其他未处理的异常则会按默认方式处理。
+    public function render($request, Throwable $exception)
+    {
+        if ($exception instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+            // return response()->json(['message' => '无效访问'], 404);
+            sendErrorMSG('404', '无效访问');
+            
+        }
+    
+        return parent::render($request, $exception);
     }
 }

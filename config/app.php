@@ -194,6 +194,9 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+// 自定义服务
+// 创建一个服务提供者来动态地根据路由前缀注册对应的中间件
+        // App\Providers\RouteMiddlewareServiceProvider::class,
 
     ],
 
