@@ -23,7 +23,7 @@ class VerificationCodeService
  * 4.Y轴随机：$an->ext_rand_y = false; 值为false表示不支持图片Y轴随机
  * 5.图片背景：改变 $red $green $blue 三个成员变量的值即可
  **/
-$an=new ValidateCode (6,200,50);
+$an=new ValidateCode (6,200,35);
 // $an->ext_num_type='';
 $an->ext_pixel = true; //干扰点
 $an->ext_line = false; //干扰线

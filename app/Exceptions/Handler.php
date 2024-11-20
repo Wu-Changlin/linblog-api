@@ -56,7 +56,7 @@ class Handler extends ExceptionHandler
     {
         if ($exception instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
             // return response()->json(['message' => '无效访问'], 404);
-            sendErrorMSG('404', '无效访问');
+            sendErrorMSG(404,'');
             
         }
     

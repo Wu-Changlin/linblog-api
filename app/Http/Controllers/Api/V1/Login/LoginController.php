@@ -45,6 +45,13 @@ echo $hash; // 输出哈希值
     }
 
 
+
+    public function loginPageData(){
+        header('HTTP/1.0 9999 Unauthorized');
+        // return response('Unauthenticated.', 401);
+        sendErrorMSG("令牌失效", 403);
+    }
+
     
 
 
@@ -55,11 +62,11 @@ echo $hash; // 输出哈希值
         // $this->senderr('你好',200);
 
 
-    sendErrorMSG('403Sign','');
-    die;
+
 
     $verification_code_service_data= $this->verificationCodeService->index();
-    echo '验证码：'.$verification_code_service_data['validate_code'];
+    echo '验证码：';
+    var_dump($verification_code_service_data);
     echo '<img src="'.$verification_code_service_data["validate_code_path"].'" alt="Image" />';
 
     }

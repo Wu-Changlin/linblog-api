@@ -9,13 +9,14 @@ use App\Models\IpBlackList as IpBlackListModel;
 class IpBlackListService
 {
 
-    //检查IP是否存在黑名单IP表
- public function checkIpInBlackListTable($data)
+    //检查是否禁止IP
+ public function isBanned($data)
 {
     if(empty($data)){ //如果$data为空直接返回
         return 0;
     }
-    $res=IpBlackListModel::checkIpInBlackList($data); //执行新增
+    
+    $res=IpBlackListModel::getIpExistStatusByCondition($data); //执行查询;按条件获取ip存在状态；返回bool值
 
     return $res;
 

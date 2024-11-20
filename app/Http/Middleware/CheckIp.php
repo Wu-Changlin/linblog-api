@@ -4,17 +4,17 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Support\Facades\Route;
-use DB;
 
 
 use App\Services\IpBlackListService;
 
+/* 检查请求是否携带token */
 class CheckIp
 {
     // 状态 关闭：false，开启：true
     private $status = true;
     // ip库
-    private $StoreIp = ['127.0.0.2', '127.0.0.1'];
+    private $StoreIp = ['127.0.0.1', '127.0.0.1'];
 
 
     /**
@@ -34,12 +34,12 @@ class CheckIp
             $data = [
                 'ip_address' => $visitor_ip
             ];
-            // 调用ip服务检查IP是否存在黑名单IP表
-            $check_res = $ipBlackListService->checkIpInBlackListTable($data);
+            // 调用ip服务检查是否禁止IP
+            $check_res = $ipBlackListService->isBanned($data);
 
             // 存在禁止访问，停止运行代码
             if ($check_res) {
-                sendMSG('禁止访问', 403, []);
+                sendMSG(403, [],'禁止访问');
                 die;
             }
         }

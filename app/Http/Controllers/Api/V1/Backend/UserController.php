@@ -29,7 +29,7 @@ class UserController extends Controller
             ]
         ];
 
-    sendMSG('OK',200, $user);
+    sendMSG(200, $user,'OK');
         // return response()->json(['user' => $user], 201);
     }
  
@@ -40,6 +40,15 @@ class UserController extends Controller
         die;
         $users = $this->userService->getAll();
         return response()->json($users, 200);
+    }
+
+
+    public function  getRefreshAccessToken(){
+        $user=[
+            "jwt_access_token"=>"php_new_jwt_refresh_token",
+        
+        ];
+        sendMSG(200, $user,'OK');
     }
 
 

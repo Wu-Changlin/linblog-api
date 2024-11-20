@@ -14,6 +14,22 @@ function rgbRandomNumbers()
 }
 
 
+// 使用explode函数来根据'/'字符分割字符串，并获取相应的部分。
+// 以下是一个简单的函数，它接受一个字符串和一个位置参数，然后输出指定位置后的内容。
+// 这个函数会根据提供的位置参数，返回相应的字符串部分。如果位置参数不存在，则返回null。
+// 示例： 
+// $str = 'api/frontend/frontend/getCurrentActivePageData';
+// $position = 1; // 输出第1个'/'之后的内容，即'frontend'
+// echo outputByPosition($str, $position); // 输出: frontend
+function outputByPosition($str, $position) {
+    $parts = explode('/', $str);
+    if (isset($parts[$position])) {
+        return $parts[$position];
+    }
+    return null;
+}
+
+
 function getVisitorIP()
 {
     // $headers = array(
@@ -52,11 +68,12 @@ function getVisitorIP()
 /**
  * 成功返回
  * 接口返回数据
- * @param $msg         自定义提示信息
- * @param int $code    xiang
- * @param array $data
+ *
+ * @param int $code    状态码
+ * @param array $data  响应数据
+ *  @param $msg        自定义提示信息
  */
-function sendMSG($msg, $code = 0, $data = [])
+function sendMSG($code = 0, $data = [],$msg)
 {
     header('content-type:application/json;charset=utf8');
     // 解决Ajax跨域
@@ -65,7 +82,9 @@ function sendMSG($msg, $code = 0, $data = [])
     $arr = array(
         'msg' => $msg,
         'code' => $code,
-        'data' => empty($data) ? "" : $data
+        'data' => empty($data) ? [] : $data
+        // 'data' => empty($data) ? "" : $data
+
         // 'data' => empty($data) ? "" : enGzip($data)
     );
     // 用 PHP 的 json_encode 来处理中文的时候，中文都会被编码，
@@ -97,7 +116,7 @@ die(json_encode($arr, JSON_UNESCAPED_UNICODE));
 /**
  * 失败返回
  */
-function sendErrorMSG($code, $message = '')
+function sendErrorMSG($code,$message = '')
 {
     // 出现404错误时,把相关信息记录到日志中,以方便发现错误
     // if($code == 404){
@@ -114,8 +133,11 @@ function sendErrorMSG($code, $message = '')
     // 如果没有自定义message，则使用code查询语言包中对应的错误提示
     if (empty($message)) {
         $code_str='cn.'.$code;
+        
          //trans( $code_str) 载入语言包
         $message =  trans( $code_str)?? $code;
+
+        $message==$code_str?$message='未知错误':'';
     }
 
     // 使用preg_replace进行替换，非数字替换为空。

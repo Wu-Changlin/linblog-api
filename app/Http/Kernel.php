@@ -68,27 +68,32 @@ class Kernel extends HttpKernel
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            // 'checkToken' => \App\Http\Middleware\CheckToken::class,  //检测Token
-
+            // 自定义  写在api.php文件的路由都生效（公共中间件？）
+           'checkIp' => \App\Http\Middleware\CheckIp::class,  //检测黑名单IP 
+           'preventDuplicateSubmission' => \App\Http\Middleware\PreventDuplicateSubmission::class,  //检测Token
         ],
-        //自定义中间件
+        //自定义中间件组
 
         //前端路由中间组
         'frontend' => [
-            'checkIp' => \App\Http\Middleware\CheckIp::class,  //检测黑名单IP
-            'checkToken' => \App\Http\Middleware\CheckToken::class, //检测Token
+            'checkToken' => \App\Http\Middleware\CheckToken::class,  //检测Token
         ],
+
         //后台路由中间组
-
         'backend' => [
-            'checkIp' => \App\Http\Middleware\CheckIp::class,  //检测黑名单IP
-            'checkToken' => \App\Http\Middleware\CheckToken::class, //检测Token
+            'checkToken' => \App\Http\Middleware\CheckToken::class,  //检测Token
         ],
+        
         //登录路由中间组
-
         'login' => [
-            'checkIp' => \App\Http\Middleware\CheckIp::class,  //检测黑名单IP 
+            'checkToken' => \App\Http\Middleware\CheckToken::class,  //检测Token
         ],
+
+        //重置密码中间组
+        'reset_password' => [
+            'checkToken' => \App\Http\Middleware\CheckToken::class,  //检测Token 
+        ],
+        
 
 
     ];
@@ -122,6 +127,10 @@ class Kernel extends HttpKernel
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        // 自定义
+        'preventDuplicateSubmission' => \App\Http\Middleware\PreventDuplicateSubmission::class,
+
+        
 
     ];
 }

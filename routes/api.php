@@ -19,8 +19,11 @@ use \App\Http\Controllers\LoginController;
 |
 */
 
+
+// 动态加载中间件组、中间件
+$middleware_name=[];
 /* 获取请求对象的url的prefix：前缀名动态使用中间件组 开始*/
-$prefix_data_str='frontend,backend,login';
+$prefix_data_str='frontend,backend,login,reset_password';
 
  // 获取当前请求对象
 $request =request();
@@ -30,25 +33,76 @@ $request =request();
 //截取后: api/frontend/frontend/getCurrentActivePageData
 //api//{prefix}/{controller}/{action} prefix：前缀（命名空间） controller：控制名前缀 action 控制器方法
 $no_domain_name_str=$request->path();
+
 //  字符串以斜杠分割为数组 array:4 [0 => "api",1 => "frontend",2 => "frontend",3 => "getCurrentActivePageData"]
 $parts_array = explode('/', $no_domain_name_str);
+
+
+// 数组长度小于2
+if(count($parts_array)<2){
+    echo 111;
+    abort(404); //人为触发 404 错误
+}
+
+
+// 过滤数组返回空值元素
+$filtered_array_return_empty_elements = array_filter($parts_array, function($value) {
+    return empty($value);
+});
+// 实例 访问 http://localhost:9090/  打印var_dump($parts_array); 输出 array(2) { [0]=> string(0) "" [1]=> string(0) "" }
+// 数组存在空值元素 
+if($filtered_array_return_empty_elements){
+    echo 222;
+    abort(404); //人为触发 404 错误
+}
 
 // 获取prefix：前缀名（命名空间）
 $current_prefix_name=$parts_array[1];
 
-// str_contains — 确定字符串是否包含指定子串,区分大小写;
-$contains_results=str_contains($prefix_data_str, $current_prefix_name);
-if(!$contains_results){//如果没有包含,那么人为触发 404 错误
+//匹配失败 匹配字符串以大小写字母开头，由大小写字母，数字和下划线组成。
+if (!preg_match('/^[a-zA-Z][a-zA-Z0-9_]+/is', $current_prefix_name)) {
+    echo 333;
     abort(404); //人为触发 404 错误
 }
 
-/* 获取请求对象的url的prefix：前缀名动态使用中间件组 结束*/
+// str_contains — 确定字符串是否包含指定子串,区分大小写;
+$contains_results=str_contains($prefix_data_str, $current_prefix_name);
+
+if(!$contains_results){//如果没有包含,那么人为触发 404 错误
+    echo 444;
+    abort(404); //人为触发 404 错误
+}
+// 添加中间件组到middleware_name
+// $middleware_name[]=$current_prefix_name;
+/* 获取请求对象的url的prefix：前缀名动态使用中间件 结束*/
 
 
-Route::middleware($current_prefix_name)->group(function () {
+/* 获取请求对象的url的action：action名动态使用中间件 开始*/
+// http://localhost:9090/api/frontend/frontend/getSearchKeywordMatchData
+// 防止重复提交操作名称字符串
+// $prevent_duplicate_submission_action_name_str='getSearchKeywordMatchData,';
+
+// // 获取action_name：操作名称（方法名）
+// $current_action_name=$parts_array[3];
+
+// // str_contains — 确定字符串是否包含指定子串,区分大小写;
+// $action_name_contains_results=str_contains($prevent_duplicate_submission_action_name_str, $current_action_name);
+// if($action_name_contains_results){//如果有包含,那么人为触发 404 错误
+//     $action_name_middleware='preventDuplicateSubmission';
+//     // 添加中间件到middleware_name
+//     $middleware_name[]=$action_name_middleware;
+// }
+
+
+
+/* 获取请求对象的url的action：action名动态使用中间件组 结束*/
+
+Route::middleware($current_prefix_name)->group(function ()  {
+
     Route::match(['GET', 'POST'], '/{prefix}/{controller}/{action}', function($prefix,$controller,$action) {
         // http://localhost:9090/api/backend/user/index
         // http://localhost:9090/api/frontend/frontend/getCurrentActivePageData
+        // http://localhost:9090/api/login/login/getVerificationCode
         // $prefix：前缀（命名空间） $controller：控制名前缀 $action 控制器方法
     /* 
     生成一个request对象。在 Laravel 框架中，需要通过 Request 对象来获取用户请求信息，
@@ -58,7 +112,7 @@ Route::middleware($current_prefix_name)->group(function () {
 
         $request = app('request');
         // 拼接控制器路径
-                $controller = '\App\Http\Controllers\Api\V1\\'.$prefix.'\\'.ucfirst($controller).'Controller';
+                $controller = '\App\Http\Controllers\Api\V1\\'.ucfirst($prefix).'\\'.ucfirst($controller).'Controller';
             
                 
     //  实例化控制器对象和请求参数

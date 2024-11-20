@@ -23,7 +23,7 @@ class FrontendController extends Controller
     {
 
 
-        sendMSG('getCurrentActivePageData', 200, []);
+        sendMSG(200,[],'getCurrentActivePageData');
         // return response()->json(['user' => $user], 201);
     }
 
@@ -32,7 +32,7 @@ class FrontendController extends Controller
     {
 
 
-        sendMSG('getIndexPageData', 200, []);
+        sendMSG(200,[],'getIndexPageData');
         // return response()->json(['user' => $user], 201);
     }
 
@@ -43,42 +43,42 @@ class FrontendController extends Controller
     {
 
 
-        sendMSG('getArchivesPageData', 200, []);
+        sendMSG(200,[],'getArchivesPageData');
         // return response()->json(['user' => $user], 201);
     }
 
     // 获取当前点击标签的页面数据
     public function getClickTagPageData()
     {
-        sendMSG('getClickTagPageData', 200, []);
+        sendMSG(200,[],'getClickTagPageData');
     }
-
+  
 
     // 获取选中标签的下一页数据  
     public function getActiveTagNextPageData()
     {
-        sendMSG('getActiveTagNextPageData', 200, []);
+        sendMSG(200,[],'getActiveTagNextPageData');
     }
 
 
     //获取log和菜单导航栏   // 获取网站配置（如网站标题、网站关键词、网站描述、底部备案、网站log）
     public function getLayoutLogOrMenuListData()
     {
-        sendMSG('getLayoutLogOrMenuListData', 200, []);
+        sendMSG(200,[],'getLayoutLogOrMenuListData');
     }
 
 
     //获取搜索关键字匹配所用数据源  提供一个获取数据的方法，用于搜索时显示下拉菜单数据
     public function getSearchKeywordMatchArticleListDataFunction()
     {
-        sendMSG('getSearchKeywordMatchArticleListDataFunction', 200, []);
+        sendMSG(200,[],'getSearchKeywordMatchArticleListDataFunction');
     }
 
 
     //获取搜索关键字匹配结果  
     public function getSearchKeywordMatchData()
     {
-        sendMSG('getSearchKeywordMatchData', 200, []);
+        sendMSG(200,[],'getSearchKeywordMatchData');
     }
 
 
@@ -87,7 +87,7 @@ class FrontendController extends Controller
 
     public function getSearchKeywordMatchNextPageData()
     {
-        sendMSG('getSearchKeywordMatchNextPageData', 200, []);
+        sendMSG(200,[],'getSearchKeywordMatchNextPageData');
     }
 
 
@@ -95,20 +95,20 @@ class FrontendController extends Controller
 
     public function getArticlePageData()
     {
-        sendMSG('getArticlePageData', 200, []);
+        sendMSG(200,[],'getArticlePageData');
     }
 
     //获取点击年份的贡献数据（获取年贡献信息）
 
     public function getClickYearContributionData()
     {
-        sendMSG('getClickYearContributionData', 200, []);
+        sendMSG(200,[],'getClickYearContributionData');
     }
 
     //获取选中日期贡献信息（由contribution_calendar子组件发到父组件的点击贡献图某日数据）
     public function clickContributionDay()
     {
-        sendMSG('clickContributionDay', 200, []);
+        sendMSG(200,[],'clickContributionDay');
     }
 
 

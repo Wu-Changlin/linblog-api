@@ -9,6 +9,9 @@ use DB;
 
 use App\Services\IpBlackListService;
 
+
+/* 检查当前IP请求数量 */
+
 class CheckCurrentIpRequestQuantity
 {
     // 状态 关闭：false，开启：true
@@ -41,7 +44,7 @@ class CheckCurrentIpRequestQuantity
 
             // // 存在禁止访问，停止运行代码
             // if ($check_res) {
-                sendMSG('CheckCurrentIpRequestQuantity-禁止访问', 403, []);
+                sendMSG(403, [],'CheckCurrentIpRequestQuantity-禁止访问');
                 die;
             // }
         }

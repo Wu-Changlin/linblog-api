@@ -18,12 +18,19 @@ class IpBlackList extends Model
 //         'remark',
 //     ];
 
+// get Ip is   exist black list table  获取Ip存在黑名单表
+
+// get Data By Condition    按条件获取数据
+
+
+
+
     /**
-     * 检查IP是否存在黑名单表
+     * 按条件获取ip存在状态 
      * @param $data IP数据
      * @return bool 存在  true 是， false 否
      */
-    public static function checkIpInBlackList($data){
+    public static function getIpExistStatusByCondition($data){
         if(empty($data)){ //如果$data为空直接返回
             return 0;
         }
