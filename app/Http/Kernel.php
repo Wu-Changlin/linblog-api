@@ -70,9 +70,13 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             // 自定义  写在api.php文件的路由都生效（公共中间件？）
            'checkIp' => \App\Http\Middleware\CheckIp::class,  //检测黑名单IP 
-           'preventDuplicateSubmission' => \App\Http\Middleware\PreventDuplicateSubmission::class,  //检测Token
+           'checkRequestNumber' => \App\Http\Middleware\CheckRequestNumber::class,  //检测请求次数
+           'checkRequest' => \App\Http\Middleware\CheckRequest::class,  //检测请求次数
+
         ],
         //自定义中间件组
+
+
 
         //前端路由中间组
         'frontend' => [

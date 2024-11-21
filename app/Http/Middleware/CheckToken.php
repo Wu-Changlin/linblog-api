@@ -12,7 +12,7 @@ use App\Services\IpBlackListService;
 class CheckToken
 {
     // 状态 关闭：false，开启：true
-    private $status = true;
+    private $status = false;
 
     /**
      * 处理请求
@@ -48,9 +48,9 @@ class CheckToken
             } else {
                 // 没有提供Authorization头部，返回错误
                   // 没有提供Authorization头部，返回错误
-            // header('HTTP/1.0 401 Unauthorized');
+            header('HTTP/1.0 401 Unauthorized');
            
-            // sendErrorMSG($authorizationHeader, 403);
+            sendErrorMSG($authorizationHeader, 403);
             }
         
         }
