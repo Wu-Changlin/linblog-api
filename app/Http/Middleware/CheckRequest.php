@@ -17,7 +17,12 @@ nonce的意思是仅一次有效的随机字符串，要求每次请求时该参
 
 此时服务端的处理流程如下：
 
-去 redis 中查找是否有 key 为 nonce:{nonce}的 string
+1.提交参数的时间戳与服务器当前时间戳是否超过60秒（过期时间根据业务情况设置）。
+如果超过了提示签名过期。
+
+
+2.请求重复
+去 redis 中查找是否有 key 为 nonce:{nonce}的 string。
 
 如果没有，则创建这个 key，把这个 key 失效的时间和验证 timestamp 失效的时间一致，比如是 60s。
 
@@ -27,6 +32,8 @@ nonce的意思是仅一次有效的随机字符串，要求每次请求时该参
 class CheckRequest
 {
 
+    //限制时间
+    private $limit_time = 60;
 
     public function handle(Request $request, Closure $next)
     {
@@ -39,44 +46,43 @@ class CheckRequest
         // 获取timestamp
         $timestamp = $request->input('timestamp');
         
-        var_dump('server_current_timestamp:',$server_current_timestamp);
-        var_dump('timestamp:',$timestamp);
+        /*1.重放验证
+        提交参数的时间戳与服务器当前时间戳是否超过60秒（过期时间根据业务情况设置）
+        如果超过了提示签名过期
+        */
 
-
-
-        //时间戳相差20秒，异常请求
-    //   if(intval($server_current_timestamp) - intval($timestamp)  >20){
-    //     sendMSG(403, [], '异常请求');
+    //   if(intval($server_current_timestamp) - intval($timestamp)  > $this->limit_time){
+    //     sendMSG(403, [], '签名过期!');
     //   }
         
-        // 获取nonce
+    //2.请求重复
+        // 判断nonce
         $nonce = $request->input('nonce');
 
         // 使用 Laravel 提供的 env() 函数来获取.env文件环境变量
         $redis_host_value = env('REDIS_HOST');
         $redis_password_value = env('REDIS_PASSWORD');
         $redis_port_value = env('REDIS_PORT');
-    $repository_serial_number_value = env('REDIS_PREVENT_DUPLICATE_SUBMISSION_REPOSITORY_SERIAL_NUMBER');
+        $repository_serial_number_value = env('REDIS_PREVENT_DUPLICATE_SUBMISSION_REPOSITORY_SERIAL_NUMBER');
 
-    
 
         #一分钟接口调用只能10次
         $redis = new Redis();
         $redis->open($redis_host_value, $redis_port_value); //服务器连接的Ip与端口号
         $redis->auth($redis_password_value); //redis服务的密码
-        $redis->select(0); //选择连接的redis，默认redis的库有16个
+        $redis->select($repository_serial_number_value); //选择连接的redis，默认redis的库有16个
         
         #记录nonce
         $nonce_value = $redis->get($nonce); //get命令用于获取指定的keyz值，如果key值不存在返回null
         // 不存在
         if (!$nonce_value) {
             #设置过期时间为60秒
-            $redis->setex($nonce, 60,$nonce);
+            $redis->setex($nonce,$this->limit_time,$nonce);
             // $redis->expire($visitor_ip, ); //给key值设置生存时间
         } 
         //存在
         if($nonce_value){
-            sendMSG(403, [], '非法提交');
+            sendMSG(403, [], '重复请求!');
         }
     
 

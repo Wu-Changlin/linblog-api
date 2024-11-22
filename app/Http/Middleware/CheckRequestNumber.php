@@ -39,7 +39,7 @@ class CheckRequestNumber
         $redis_host_value = env('REDIS_HOST');
         $redis_password_value = env('REDIS_PASSWORD');
         $redis_port_value = env('REDIS_PORT');
-        $repository_serial_number_value = env('REDIS_PREVENT_DUPLICATE_SUBMISSION_REPOSITORY_SERIAL_NUMBER');
+        $repository_serial_number_value = env('REDIS_REQUEST_NUMBER_SERIAL_NUMBER');
 
         #一分钟接口调用只能10次
         $redis = new Redis();
