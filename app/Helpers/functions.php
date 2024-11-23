@@ -64,6 +64,20 @@ function getVisitorIP()
     return $real_Ip;
 }
 
+      // 将字符串转换为UTF-8编码
+function strToUtf8Bytes($str) {
+    // 将字符串转换为UTF-8编码
+    $utf8Str = mb_convert_encoding($str, 'UTF-8', 'auto');
+    // 初始化字节数组
+    $bytes = [];
+ 
+    // 遍历UTF-8编码的字符串，将每个字符转换为其对应的字节值
+    for ($i = 0; $i < mb_strlen($utf8Str, 'UTF-8'); $i++) {
+        $bytes[] = ord(mb_substr($utf8Str, $i, 1, 'UTF-8'));
+    }
+ 
+    return $bytes;
+}
 
 /**
  * 成功返回

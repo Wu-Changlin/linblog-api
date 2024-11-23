@@ -7,19 +7,16 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Services\IpBlackListService;
 
-/* 检查请求是否携带token */
-class CheckIp
+/* 检查用户是否登录 */
+class CheckUserLogin
 {
     // 状态 关闭：false，开启：true
     private $status = true;
-    // ip库
-    private $StoreIp = ['127.0.0.1', '127.0.0.1'];
-
 
     /**
      * 处理请求
      *
-     * @param \Illuminate\Http\Request $request
+     * @param \Illuminate\Http\Request  $request
      * @param \Closure       $next
      * @return Response
      */

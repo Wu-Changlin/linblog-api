@@ -77,7 +77,7 @@ echo $hash; // 输出哈希值
      *博客后台登录操作   (用户或管理员登录)
      * post  $user_name 用户名称(用户邮箱)  $password 用户密码  $verification _code 登录验证码 动态生成
      */
-    public function logIn(Request $request)
+    public function userLogin(Request $request)
     {
 
         $key = '344'; //key，唯一标识

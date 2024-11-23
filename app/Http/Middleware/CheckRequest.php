@@ -6,7 +6,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Redis;//加载Redis扩展类
-
+use App\Services\SignService;
 
 
 /* 实现基于timestamp和nonce实现防重放 http防重放功能 */
@@ -81,10 +81,19 @@ class CheckRequest
             // $redis->expire($visitor_ip, ); //给key值设置生存时间
         } 
         //存在
-        if($nonce_value){
-            sendMSG(403, [], '重复请求!');
-        }
-    
+        // if($nonce_value){
+        //     sendMSG(403, [], '重复请求!');
+        // }
+        
+        $data = $request->all();
+        $sign=SignService::getSign($data);
+
+        //    使用empty()函数来检查变量是否为空值，这个函数会认为空字符串、0、"0"、null、false、undefined、空数组都是空的。
+   if(empty($sign)){
+        sendMSG(403, [], '签名失效!');
+
+}
+
 
         return $next($request);
     }

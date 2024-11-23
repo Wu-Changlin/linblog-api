@@ -14,6 +14,8 @@ use Redis;//加载Redis扩展类
 class CheckRequestNumber
 {
 
+     // 状态 关闭：false，开启：true
+     private $status = false;
     //时间内访问的总次数
 
     private $total = 0;
@@ -33,6 +35,10 @@ class CheckRequestNumber
 
     public function handle(Request $request, Closure $next)
     {
+
+        // 开启检测请求次数
+        if($this->status == true){
+
         //  访客ip
         $visitor_ip = getVisitorIP();
         // 使用 Laravel 提供的 env() 函数来获取.env文件环境变量
@@ -90,7 +96,7 @@ class CheckRequestNumber
             // return 2; //调用接口频繁
             sendMSG(403, [], '调用接口频繁');
         }
-
+    }
         return $next($request);
     }
 }

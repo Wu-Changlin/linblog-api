@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use DB;
 use App\Services\IpBlackListService;
 
@@ -17,11 +18,11 @@ class CheckToken
     /**
      * 处理请求
      *
-     * @param \think\Request $request
+     * @param \Illuminate\Http\Request; $request
      * @param \Closure       $next
      * @return Response
      */
-    public function handle($request, Closure $next)
+    public function handle(Request $request, Closure $next)
     {
 
         // 开启检查黑名单IP

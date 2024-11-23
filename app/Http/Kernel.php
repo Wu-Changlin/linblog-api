@@ -86,6 +86,7 @@ class Kernel extends HttpKernel
         //后台路由中间组
         'backend' => [
             'checkToken' => \App\Http\Middleware\CheckToken::class,  //检测Token
+            'checkUserLogin' => \App\Http\Middleware\CheckUserLogin::class, //检测用户是否登录
         ],
         
         //登录路由中间组
