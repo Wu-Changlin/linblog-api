@@ -43,21 +43,21 @@ class CheckRequest
 // 服务器当前时间戳
         $server_current_timestamp = time();
 
-        // 获取timestamp
-        $timestamp = $request->input('timestamp');
+        // 获取请求参数的timestamp
+        $request_params_timestamp = $request->input('timestamp');
         
         /*1.重放验证
         提交参数的时间戳与服务器当前时间戳是否超过60秒（过期时间根据业务情况设置）
         如果超过了提示签名过期
         */
 
-    //   if(intval($server_current_timestamp) - intval($timestamp)  > $this->limit_time){
+    //   if(intval($server_current_timestamp) - intval($request_params_timestamp)  > $this->limit_time){
     //     sendMSG(403, [], '签名过期!');
     //   }
         
     //2.请求重复
-        // 判断nonce
-        $nonce = $request->input('nonce');
+        // 获取请求参数的nonce
+        $request_params_nonce = $request->input('nonce');
 
         // 使用 Laravel 提供的 env() 函数来获取.env文件环境变量
         $redis_host_value = env('REDIS_HOST');
@@ -73,11 +73,11 @@ class CheckRequest
         $redis->select($repository_serial_number_value); //选择连接的redis，默认redis的库有16个
         
         #记录nonce
-        $nonce_value = $redis->get($nonce); //get命令用于获取指定的keyz值，如果key值不存在返回null
+        $nonce_value = $redis->get($request_params_nonce); //get命令用于获取指定的keyz值，如果key值不存在返回null
         // 不存在
         if (!$nonce_value) {
             #设置过期时间为60秒
-            $redis->setex($nonce,$this->limit_time,$nonce);
+            $redis->setex($request_params_nonce,$this->limit_time,$request_params_nonce);
             // $redis->expire($visitor_ip, ); //给key值设置生存时间
         } 
         //存在
@@ -86,13 +86,23 @@ class CheckRequest
         // }
         
         $data = $request->all();
-        $sign=SignService::getSign($data);
+        $server_current_sign=SignService::getSign($data);
 
         //    使用empty()函数来检查变量是否为空值，这个函数会认为空字符串、0、"0"、null、false、undefined、空数组都是空的。
-   if(empty($sign)){
+   if(empty($server_current_sign)){
         sendMSG(403, [], '签名失效!');
 
 }
+
+   // 获取请求参数的签名
+   $request_params_sign = $request->input('sign');
+
+//    echo $request_params_sign;
+//    echo "</br>";
+//    echo $server_current_sign;
+   if($server_current_sign!=$request_params_sign){
+    sendMSG(403, [], '无效签名!');
+   }
 
 
         return $next($request);

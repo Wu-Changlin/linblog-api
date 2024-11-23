@@ -104,23 +104,14 @@ $data_to_trigrams_binary = self::replaceMultiple($data_base64_to_trigrams,self::
     return 0;
 }
 
-$secret_key_to_utf8=strToUtf8Bytes($secret_key);
 
-$data_trigrams_binary_to_bitwiseNot_to_utf8=strToUtf8Bytes($data_trigrams_binary_to_bitwiseNot);
+ // 生成签名 使用HMAC生成SHA-256哈希值的函数
+$sign_str=hash('sha256',hash_hmac('sha256', $data_trigrams_binary_to_bitwiseNot, $secret_key));
 
+// 返回签名字符串
+return  $sign_str;
 
-// 使用array_map将每个十进制值转换为十六进制字符串，并使用implode将结果拼接成一个字符串
-$key_hexString = implode('', array_map('dechex', $secret_key_to_utf8));
-$data_hexString = implode('', array_map('dechex', $data_trigrams_binary_to_bitwiseNot_to_utf8));
-
-
-$sign_str=hash_hmac('sha256',$key_hexString, $data_hexString);
-dd($sign_str);
-    //散列 加密 生成 sign
-    //1.哈希处理数据生成Uint8Array; 2.循环数组Uint8Array，实现十进制转换为十六进制的逻辑，生成字符串; 3 十六进制字符串生成散列值。
-    // const sign_str = hash(hex(sign(secret, data_trigrams_binary_to_bitwiseNot)));
-
-    }
+}
 
 
 
