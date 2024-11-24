@@ -11,9 +11,9 @@ use DateTime;
 header("Content-Type:text/html;charset=utf-8");
 class LunarService
 {
-    var $MIN_YEAR = 1891;
-    var $MAX_YEAR = 2100;
-    var $lunarInfo = array(
+    private static $MIN_YEAR = 1891;
+    private static $MAX_YEAR = 2100;
+    private static $lunarInfo = array(
         array(0, 2, 9, 21936),
         array(6, 1, 30, 9656),
         array(0, 2, 17, 9584),
@@ -227,20 +227,36 @@ class LunarService
     );
 
     // 将时间戳转换为农历
-    function convertTimestampToLunar($timestamp)
+    public static  function convertTimestampToLunar($timestamp)
     {
-          // 当天的日期 转换为年月日
-          $year = date("Y", $timestamp); // 年份
-          $month = date("m", $timestamp); // 月份
-          $date = date("d", $timestamp); // 日期
+        // 当天的日期 转换为年月日
+        $year = date("Y", $timestamp); // 年份
+        $month = date("m", $timestamp); // 月份
+        $date = date("d", $timestamp); // 日期
         //debugger;
-        $yearData = $this->lunarInfo[$year - $this->MIN_YEAR];
-        if ($year == $this->MIN_YEAR && $month <= 2 && $date <= 9) {
+        $yearData = self::$lunarInfo[$year - self::$MIN_YEAR];
+        if ($year == self::$MIN_YEAR && $month <= 2 && $date <= 9) {
             return array(1891, '正月', '初一', '辛卯', 1, 1, '兔');
         }
 
-        return $this->getLunarByBetweenNumber($year, $this->getDaysBetweenSolar($year, $month, $date, $yearData[1], $yearData[2]),$timestamp);
+        return self::getLunarByBetweenNumber($year, self::getDaysBetweenSolarNumber($year, $month, $date, $yearData[1], $yearData[2]), $timestamp);
+    }
 
+
+    /**
+     * 计算2个阳历日期之间的天数
+     * @param year 阳历年
+     * @param cmonth
+     * @param cdate
+     * @param dmonth 阴历正月对应的阳历月份
+     * @param ddate 阴历初一对应的阳历天数
+     */
+
+    public static function getDaysBetweenSolarNumber($year, $cmonth, $cdate, $dmonth, $ddate)
+    {
+        $a = mktime(0, 0, 0, $cmonth, $cdate, $year);
+        $b = mktime(0, 0, 0, $dmonth, $ddate, $year);
+        return ceil(($a - $b) / 24 / 3600);
     }
 
 
@@ -251,7 +267,7 @@ class LunarService
      * @param timestamp 时间戳
      * 
      */
-    function getLunarByBetweenNumber($year, $between,$timestamp)
+    public static function getLunarByBetweenNumber($year, $between, $timestamp)
     {
         //debugger;
         $lunarArray = array();
@@ -266,9 +282,9 @@ class LunarService
             $e = 1;
         } else {
             $year = $between > 0 ? $year : ($year - 1);
-            $yearMonth = $this->getLunarYearMonths($year);
+            $yearMonth = self::getLunarYearMonthsNumber($year);
             // $leapMonth = $this->getLeapMonth($year);
-            $between = $between > 0 ? $between : ($this->getLunarYearDays($year) + $between);
+            $between = $between > 0 ? $between : (self::getLunarYearDaysNumber($year) + $between);
             for ($i = 0; $i < 13; $i++) {
                 if ($between == $yearMonth[$i]) {
                     $t = $i + 2;
@@ -283,57 +299,133 @@ class LunarService
             // $m = ($leapMonth != 0 && $t == $leapMonth + 1) ? ('闰' . $this->getCapitalNum($t - 1, true)) : $this->getCapitalNum(($leapMonth != 0 && $leapMonth + 1 < $t ? ($t - 1) : $t), true);
             // array_push($lunarArray, $year, $m, $this->getCapitalNum($e, false));
         }
-        
-        $lunar_hour=$this->isInTwoHourPeriod($timestamp);
-        $lunarArray['lunar_year']=$year % 12;
-        $lunarArray['lunar_month']=$t;
-        $lunarArray['lunar_day']=$e;
-        $lunarArray['lunar_hour']=$lunar_hour;
+
+        $lunar_hour = self::isInTwoHourPeriod($timestamp);
+        $lunarArray['lunar_year'] = $year % 12;
+        $lunarArray['lunar_month'] = $t;
+        $lunarArray['lunar_day'] = $e;
+        $lunarArray['lunar_hour'] = $lunar_hour;
 
         return $lunarArray;
     }
 
-        //检查当前时间是否在某个2小时时间段内,十二时辰划分；返回子1丑2……亥12
-        function isInTwoHourPeriod($timestamp)
-        {
-            // 当天的日期 转换为年月日
-            $year = date("Y", $timestamp); // 年份
-            $month = date("m", $timestamp); // 月份
-            $day = date("d", $timestamp); // 日期
-            // 时间戳数组
-            // date_default_timezone_set('PRC'); //中国标准时间
-            $hourTimestamps = [];
-            // 生成当天单数小时的时间戳数组
-            for ($hour = 0; $hour <= 23; $hour++) {
-                if ($hour % 2 !== 0) {
-                    // 使用strtotime()函数将年月日时分秒格式的日期转换为时间戳  2小时时间段内如 23：00：00---00：59：59
-                    $start = strtotime("{$year}-{$month}-{$day} {$hour}:00:00");
-                    $end_hour = $hour + 1;
-                    $end =  strtotime("{$year}-{$month}-{$day} {$end_hour}:59:59");
-    
-                    array_push($hourTimestamps, ['start' => $start, 'end' => $end]);
-                }
-            }
-            // 将数组中的最后一个元素放到第一个 ，把23-1时间段移到第一(子时排第一)
-            array_unshift($hourTimestamps, array_pop($hourTimestamps));
-    
-            // 检查时间戳是否在任何2小时时间段内
-            $key_number = 0;
-            $count = count($hourTimestamps);  // 获取数组长度
-            for ($i = 0; $i < $count; $i++) {
-                if ($timestamp >= $hourTimestamps[$i]['start'] && $timestamp <=  $hourTimestamps[$i]['end']) {
-                    $key_number = $i + 1; // 找到一个匹配的元素
-    
-                }
-            }
-    
-            // echo 'timestamp:'.$timestamp;
-            // echo 'start:'.$hourTimestamps[$i]['start'],',end:'.$hourTimestamps[$i]['end'];
-            // echo '序号：'.$i.'-key_number='.$key_number;
-            // 如果返回默认值，那么无效时间戳（过期）          
-            return $key_number;
+
+    // 获取黄历年月 
+    public static function getLunarYearMonthsNumber($year)
+    {
+        //debugger;
+        $monthData = self::getLunarMonthsNumber($year);
+        $res = array();
+        $temp = 0;
+        $yearData = self::$lunarInfo[$year - self::$MIN_YEAR];
+        $len = ($yearData[0] == 0 ? 12 : 13);
+        for ($i = 0; $i < $len; $i++) {
+            $temp = 0;
+            for ($j = 0; $j <= $i; $j++) $temp += $monthData[$j];
+            array_push($res, $temp);
         }
+        return $res;
+    }
+
+
+    /**
+     * 获取阴历每月的天数的数组
+     * @param year
+     */
+    public static function getLunarMonthsNumber($year)
+    {
+        $yearData = self::$lunarInfo[$year - self::$MIN_YEAR];
+        $leapMonth = $yearData[0];
+        $bit = decbin($yearData[3]);
+        for ($i = 0; $i < strlen($bit); $i++) $bitArray[$i] = substr($bit, $i, 1);
+        for ($k = 0, $klen = 16 - count($bitArray); $k < $klen; $k++) array_unshift($bitArray, '0');
+        $bitArray = array_slice($bitArray, 0, ($leapMonth == 0 ? 12 : 13));
+        for ($i = 0; $i < count($bitArray); $i++) $bitArray[$i] = $bitArray[$i] + 29;
+        return $bitArray;
+    }
+
+    /**
+     * 获取农历每年的天数
+     * @param year 农历年份
+     */
+    public static function getLunarYearDaysNumber($year)
+    {
+        $yearData = self::$lunarInfo[$year - self::$MIN_YEAR];
+        $monthArray = self::getLunarMonthsNumber($year);
+        $len = count($monthArray);
+        return ($monthArray[$len - 1] == 0 ? $monthArray[$len - 2] : $monthArray[$len - 1]);
+    }
+
     
+//子时 23:00-00:59 丑时 01:00-02:59 寅时 03:00-04:59 卯时 05:00-06:59 辰时 07:00-08:59 巳时 09:00-10:59
+//午时 11:00-12:59 未时 13:00-14:59 申时 15:00-16:59 酉时 17:00-18:59 戌时 19:00-20:59 亥时 21:00-22:59
+    //检查当前时间是否在某个2小时时间段内,十二时辰划分；返回子1丑2……亥12
+    public static  function isInTwoHourPeriod($timestamp)
+    {
+        // 当天的日期 转换为年月日
+        $year = date("Y", $timestamp); // 年份
+        $month = date("m", $timestamp); // 月份
+        $day = date("d", $timestamp); // 日期
+        // 时间戳数组
+        // date_default_timezone_set('PRC'); //中国标准时间
+        $hourTimestamps = [];
+        // 生成当天单数小时的时间戳数组
+        for ($hour = 0; $hour <= 23; $hour++) {
+            if ($hour % 2 !== 0) {
+                // 使用strtotime()函数将年月日时分秒格式的日期转换为时间戳  2小时时间段内如 23：00：00---00：59：59
+                $start = strtotime("{$year}-{$month}-{$day} {$hour}:00:00");
+                $end_hour = $hour + 1;
+                $end =  strtotime("{$year}-{$month}-{$day} {$end_hour}:59:59");
+
+                array_push($hourTimestamps, ['start' => $start, 'end' => $end]);
+            }
+        }
+        // 将数组中的最后一个元素放到第一个 ，把23-1时间段移到第一(子时排第一)
+        array_unshift($hourTimestamps, array_pop($hourTimestamps));
+
+        // 检查时间戳是否在任何2小时时间段内
+        $key_number = 0;
+        $count = count($hourTimestamps);  // 获取数组长度
+        for ($i = 0; $i < $count; $i++) {
+            if ($timestamp >= $hourTimestamps[$i]['start'] && $timestamp <=  $hourTimestamps[$i]['end']) {
+                $key_number = $i; // 找到一个匹配的元素
+            
+            }
+        }
+
+        // 键是0 -11 输出1-12 需加1  
+        $key_number =  $key_number + 1;
+
+        return $key_number;
+    }
+
+
+
+  public static  function getZodiacHour($timestamp) {
+        // 确保输入是有效的时间戳
+        if (!is_numeric($timestamp) || $timestamp < 0) {
+            return false;
+        }
+     
+        // 将时间戳转换为日期和时间
+        $date = date('Y-m-d H:i:s', $timestamp);
+     
+        // 提取小时信息
+        $hour = date('H', $timestamp);
+     
+        // 确定地支，子时为0，丑时为1，...，牛zhi为11
+        $zodiac = ($hour - 1) / 2;
+        $zodiac = $zodiac >= 12 ? $zodiac - 12 : $zodiac;
+     
+        // 返回地支名称和对应的时间
+        return [
+            'zodiac' => ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'][$zodiac],
+            'time' =>  date('Y-m-d H:i:s', $timestamp)
+        ];
+    }
+     
+
+
 
 
     /**
@@ -473,6 +565,7 @@ class LunarService
         $len = count($monthArray);
         return ($monthArray[$len - 1] == 0 ? $monthArray[$len - 2] : $monthArray[$len - 1]);
     }
+
     function getLunarYearMonths($year)
     {
         //debugger;

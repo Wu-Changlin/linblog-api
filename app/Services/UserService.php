@@ -10,7 +10,7 @@ class UserService
 {
 
     // 添加管理员
-    public function addUser()
+    public static function addUser()
     {
 
         if (empty($data)) { //如果$data为空直接返回
@@ -37,7 +37,7 @@ class UserService
     }
 
     // 判断用户登录 
-    public function isLogin($data)
+    public static function isLogin($data)
     {
 
         $is_login_res = UserModels::getUserLoginStatus($data);
@@ -49,7 +49,7 @@ class UserService
      * 管理员退出
      * @return 返回登录页
      */
-    public function userLogout()
+    public static function userLogout()
     {
         $logout_res = UserModels::userLogout(); //执行退出
         if ($logout_res) {
@@ -57,6 +57,11 @@ class UserService
         }
 
         return '退出登录失败';
+    }
+
+
+    public static function getAll(){
+        
     }
 
     // 其他用户相关的服务方法

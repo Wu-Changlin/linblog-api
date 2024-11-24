@@ -9,7 +9,7 @@ use \App\Common\ValidateCode;
 class VerificationCodeService
 {
 
-    public function index()
+    public static function index()
 {
 
     /**使用验证码类的方法：
@@ -43,7 +43,7 @@ return $verification_code_data;
 
 }
 
-public function create($data)
+public static function create($data)
 {
 
 }

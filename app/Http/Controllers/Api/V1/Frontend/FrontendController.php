@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 // use App\Services\UserService;
 use Illuminate\Http\Request;
 
+
+// 前端页面相关
 class FrontendController extends Controller
 {
     // protected $userService;

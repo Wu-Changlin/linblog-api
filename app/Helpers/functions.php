@@ -138,11 +138,13 @@ function sendErrorMSG($code,$message = '')
     //     $path = $GLOBALS['OPTIONS']['seaslog']."404/";
     //     $deaslog->writeData("404: {$message}",$path,'ERROR');
     // }
-
+    
     header('content-type:application/json;charset=utf8');
     // 解决Ajax跨域
     header('Access-Control-Allow-Origin: *');
     header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept');
+
+    
 
     // 如果没有自定义message，则使用code查询语言包中对应的错误提示
     if (empty($message)) {
@@ -156,6 +158,9 @@ function sendErrorMSG($code,$message = '')
 
     // 使用preg_replace进行替换，非数字替换为空。
     $code = preg_replace('/[^\d]/', '', $code); // 输出: 403
+
+    header('HTTP/1.0 '. $code);
+        // return response('Unauthenticated.', 401);
 
     // 使用intval把字符串值转数字
     $code=intval($code);

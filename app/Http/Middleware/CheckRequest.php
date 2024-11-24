@@ -37,6 +37,19 @@ class CheckRequest
 
     public function handle(Request $request, Closure $next)
     {
+
+        $data = $request->all();
+
+        if(empty($data)){
+            sendErrorMSG(403,'空提交');
+        }
+
+        // 获取请求参数的签名
+        $request_params_sign = $request->input('sign');
+            if(empty($request_params_sign)){
+                sendErrorMSG(403,'空签名');
+            }
+
         //  访客ip
         $visitor_ip = getVisitorIP();
 
@@ -45,6 +58,10 @@ class CheckRequest
 
         // 获取请求参数的timestamp
         $request_params_timestamp = $request->input('timestamp');
+
+        if(empty($request_params_timestamp)){
+            sendErrorMSG(403,'时间戳为空');
+        }
         
         /*1.重放验证
         提交参数的时间戳与服务器当前时间戳是否超过60秒（过期时间根据业务情况设置）
@@ -85,7 +102,7 @@ class CheckRequest
         //     sendMSG(403, [], '重复请求!');
         // }
         
-        $data = $request->all();
+       
         $server_current_sign=SignService::getSign($data);
 
         //    使用empty()函数来检查变量是否为空值，这个函数会认为空字符串、0、"0"、null、false、undefined、空数组都是空的。
@@ -94,8 +111,7 @@ class CheckRequest
 
 }
 
-   // 获取请求参数的签名
-   $request_params_sign = $request->input('sign');
+   
 
 //    echo $request_params_sign;
 //    echo "</br>";

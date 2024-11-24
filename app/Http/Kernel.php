@@ -95,7 +95,12 @@ class Kernel extends HttpKernel
         ],
 
         //重置密码中间组
-        'reset_password' => [
+        'resetPassword' => [
+            'checkToken' => \App\Http\Middleware\CheckToken::class,  //检测Token 
+        ],
+
+         //令牌中间组
+        'token' => [
             'checkToken' => \App\Http\Middleware\CheckToken::class,  //检测Token 
         ],
         

@@ -10,7 +10,7 @@ class IpBlackListService
 {
 
     //检查是否禁止IP
- public function isBanned($data)
+ public static function isBanned($data)
 {
     if(empty($data)){ //如果$data为空直接返回
         return 0;
@@ -24,7 +24,7 @@ class IpBlackListService
 }
 
     //添加黑名单IP
-    public function addBlackIp($data)
+    public static function addBlackIp($data)
     {
         if(empty($data)){ //如果$data为空直接返回
             return 0;

@@ -6,7 +6,6 @@ use Closure;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use DB;
-use App\Services\IpBlackListService;
 
 /* 检查请求是否携带token和有效期 */
 
@@ -51,7 +50,7 @@ class CheckToken
                   // 没有提供Authorization头部，返回错误
             header('HTTP/1.0 401 Unauthorized');
            
-            sendErrorMSG($authorizationHeader, 403);
+            sendErrorMSG(403,$authorizationHeader);
             }
         
         }

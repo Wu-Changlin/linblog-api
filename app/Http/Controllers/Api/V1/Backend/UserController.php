@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 
+// 用户模块
 class UserController extends Controller
 {
     protected $userService;
@@ -38,7 +39,7 @@ class UserController extends Controller
 
         echo 'getAll';
         die;
-        $users = $this->userService->getAll();
+        $users = UserService::getAll();
         return response()->json($users, 200);
     }
 

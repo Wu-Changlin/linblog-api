@@ -24,14 +24,13 @@ class CheckUserLogin
     {
         // 开启检查黑名单IP
         if ($this->status == true) {
-            $ipBlackListService = new IpBlackListService();
             //  访客ip
             $visitor_ip = getVisitorIP();
             $data = [
                 'ip_address' => $visitor_ip
             ];
             // 调用ip服务检查是否禁止IP
-            $check_res = $ipBlackListService->isBanned($data);
+            $check_res = IpBlackListService::isBanned($data);
 
             // 存在禁止访问，停止运行代码
             if ($check_res) {
