@@ -55,7 +55,7 @@ class CheckRequestNumber
 
 
         //        $redis->flushAll();exit;//清空redis的所有库
-        $lock_time = $redis->zScore('request_number_black_user_list', $visitor_ip); //返回有序集中key中成员member的score
+        $lock_time = $redis->zScore('request_number_user_black_list', $visitor_ip); //返回有序集中key中成员member的score
         // 黑名单锁定时间 目前设置3分钟
         if ($this->now_time - $lock_time < $this->black_list_lock_time) {
             // return 1; //在黑名单中
@@ -68,7 +68,7 @@ class CheckRequestNumber
             Redis的ZREM命令用于删除有序集合中的一个或多个成员，当删除最后一个元素时，
             有序集合仍然存在，除非该有序集合中没有其他元素，此时整个有序集合会被删除‌。
             */
-            $redis->zRem('request_number_black_user_list', $visitor_ip); //redis中zRem命令用于移除有序集合中的一个或者是多个成员，不存在的成员将被忽略，当key存在但是不是有序集合类型是，返回一个错误
+            $redis->zRem('request_number_user_black_list', $visitor_ip); //redis中zRem命令用于移除有序集合中的一个或者是多个成员，不存在的成员将被忽略，当key存在但是不是有序集合类型是，返回一个错误
         }
         
         #记录访问次数
@@ -89,10 +89,10 @@ class CheckRequestNumber
         }
         
         #集合里边的元素不会重复 字符串
-        #把ip当做key 存入redis 黑名单锁定时间 目前设置3分钟（180）
+        #把ip当做key 存入redis 请求次数用户黑名单锁定时间 目前设置3分钟（180）
         if ($ip_value >= $this->max_frequency) {
             #使用有序集合
-            $redis->zAdd('request_number_black_user_list',$this->now_time, $visitor_ip); //命令用于将一个或者是多个于是怒以及分数值加入到有序集合中
+            $redis->zAdd('request_number_user_black_list',$this->now_time, $visitor_ip); //命令用于将一个或者是多个于是怒以及分数值加入到有序集合中
             // return 2; //调用接口频繁
             sendMSG(403, [], '调用接口频繁');
         }

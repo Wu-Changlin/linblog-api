@@ -101,10 +101,12 @@ function sendMSG($code = 0, $data = [],$msg)
 
         // 'data' => empty($data) ? "" : enGzip($data)
     );
-    // 用 PHP 的 json_encode 来处理中文的时候，中文都会被编码，
-    // 变成不可读的，类似”\u***” 的格式，如果想汉字不进行转码，可用如下方法：
-// 在json_encode第二个参数添加JSON_UNESCAPED_UNICODE。
-die(json_encode($arr, JSON_UNESCAPED_UNICODE));
+    // json_encode中文unicode编码和斜杠转义 解决方法
+    // 由于 JSON_UNESCAPED_UNICODE 和 JSON_UNESCAPED_SLASHES 都是常量；
+    // JSON_UNESCAPED_UNICODE = 256 //中文不转为unicode
+    // JSON_UNESCAPED_SLASHES = 64  //不转义反斜杠
+    // JSON_UNESCAPED_UNICODE + JSON_UNESCAPED_SLASHES = 320
+die(json_encode($arr, 320));
 }
 
 
@@ -171,9 +173,11 @@ function sendErrorMSG($code,$message = '')
         'data' => [],
         'message' => $message,
     );
-    // 用 PHP 的 json_encode 来处理中文的时候，中文都会被编码，
-    // 变成不可读的，类似”\u***” 的格式，如果想汉字不进行转码，可用如下方法：
-// 在json_encode第二个参数添加JSON_UNESCAPED_UNICODE。
-    die(json_encode($arr, JSON_UNESCAPED_UNICODE));
+     // json_encode中文unicode编码和斜杠转义 解决方法
+    // 由于 JSON_UNESCAPED_UNICODE 和 JSON_UNESCAPED_SLASHES 都是常量；
+    // JSON_UNESCAPED_UNICODE = 256 //中文不转为unicode
+    // JSON_UNESCAPED_SLASHES = 64  //不转义反斜杠
+    // JSON_UNESCAPED_UNICODE + JSON_UNESCAPED_SLASHES = 320
+    die(json_encode($arr, 320));
 
 }

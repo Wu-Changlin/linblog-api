@@ -71,7 +71,7 @@ class Kernel extends HttpKernel
             // 自定义  写在api.php文件的路由都生效（公共中间件？）
            'checkIp' => \App\Http\Middleware\CheckIp::class,  //检测黑名单IP 
            'checkRequestNumber' => \App\Http\Middleware\CheckRequestNumber::class,  //检测请求次数
-           'checkRequest' => \App\Http\Middleware\CheckRequest::class,  //检测请求次数
+           'checkRequestTimestampAndNonceAndSign' => \App\Http\Middleware\CheckRequestTimestampAndNonceAndSign::class,  //检测请求次数
 
         ],
         //自定义中间件组
@@ -80,28 +80,28 @@ class Kernel extends HttpKernel
 
         //前端路由中间组
         'frontend' => [
-            'checkToken' => \App\Http\Middleware\CheckToken::class,  //检测Token
+            'checkTokenInFrontendModular' => \App\Http\Middleware\CheckTokenInFrontendModular::class,  //检测Token
         ],
 
         //后台路由中间组
         'backend' => [
-            'checkToken' => \App\Http\Middleware\CheckToken::class,  //检测Token
+            'checkTokenInBackendModular' => \App\Http\Middleware\CheckTokenInBackendModular::class,  //检测Token
             'checkUserLogin' => \App\Http\Middleware\CheckUserLogin::class, //检测用户是否登录
         ],
         
         //登录路由中间组
         'login' => [
-            'checkToken' => \App\Http\Middleware\CheckToken::class,  //检测Token
+            'CheckTokenInLoginModular' => \App\Http\Middleware\CheckTokenInLoginModular::class,  //检测Token
         ],
 
         //重置密码中间组
         'resetPassword' => [
-            'checkToken' => \App\Http\Middleware\CheckToken::class,  //检测Token 
+            'checkTokenInResetPasswordModular' => \App\Http\Middleware\CheckTokenInResetPasswordModular::class,  //检测Token 
         ],
 
          //令牌中间组
         'token' => [
-            'checkToken' => \App\Http\Middleware\CheckToken::class,  //检测Token 
+            'checkTokenInTokenModular' => \App\Http\Middleware\CheckTokenInTokenModular::class,  //检测Token 
         ],
         
 

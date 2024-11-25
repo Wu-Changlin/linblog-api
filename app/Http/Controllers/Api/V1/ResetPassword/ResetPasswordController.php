@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\loginRequest;
 
-use App\Services\UserService;
+use App\Services\JsonWebTokenService;
 use App\Services\VerificationCodeService;
 
 
@@ -33,9 +33,34 @@ class ResetPasswordController extends Controller
 
     }
 
-    //发送重置密码邮件   返回send_reset_password_email_result  成功true 失败 false
-    //redis 存储  生成的临时令牌 temporary_token  设置有效期3小时
-    public function sendResetPasswordEmail(){
+    //发送重置密码链接邮件   返回send_reset_password_email_result  成功true 失败 false
+    //redis 存储  reset_password_email_result_nick_name:{'temporary_token':temporary_token} 生成的临时令牌 temporary_token  设置有效期3小时
+    // 每24小时内仅可发送3次重置密码邮件 
+    // 检查redis 是否有重置密码链接；有：删除 重建；否：添加 （保证只有一条关于重置密码链接的记录） 
+     //  请求重置密码链接次数昵称黑名单  锁定时间
+    //     reset_password_email_result_number_nick_name_black_list 记录  time  nick_name
+    public function sendResetPasswordEmail(Request $request){
+
+          //    组装temporary_token_payload
+          $temporary_token_payload = [
+            'iat' => time(),// 签发时间
+                'iss' => 'linBlog',  // 签发者
+                'aud' => 'nick_name', // 接收者
+                'sub' => 'nick_name', // 用户标识
+                'role' => 'user' // 用户角色
+];
+
+
+        $temporary_token= JsonWebTokenService::generateTemporaryToken($temporary_token_payload);
+
+        // 拼接重置密码链接
+        $reset_password_url="http".$temporary_token;
+        // 把重置密码链接添加到邮件正文
+
+        // 发送邮件
+        // sendEmail()
+        // 判断邮件是否发送成功返回响应数据
+        sendMSG('200',['send_reset_password_email'=>true],'成功');
 
     }
 
@@ -46,6 +71,16 @@ class ResetPasswordController extends Controller
         if(empty($data)){
             sendErrorMSG(403,'空提交');
         }
+
+        if(empty($data)){
+            sendErrorMSG(403,'空提交');
+        }
+
+        // temporary_token: '',
+        // password: '',
+        // confirm_password:'',
+
+        $temporary_token= JsonWebTokenService::verifyJWT();
         sendMSG(200,[],'成功重置密码！');
 
     }

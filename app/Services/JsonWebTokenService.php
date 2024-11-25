@@ -3,15 +3,22 @@
 // app/Services/UserService.php
 
 namespace App\Services;
-use Firebase\JWT\JWT;//加载jwt插件库
+//use Firebase\JWT\JWT;//加载jwt插件库
 
 class JsonWebTokenService
 {
 
-
-
-    private static $secretKey = 'your_secret_key'; // 加密使用的秘钥
+    private static $secret_key = 'your_secret_key'; // 加密使用的秘钥
     private static $algo = 'HS256';  // 使用的算法
+
+    private static $access_token_time_to_live=1200;//有效期20分钟
+
+    private static $refresh_token_time_to_live=604800;//有效期7天
+
+    private static $temporary_token_time_to_live=300;//有效期5分钟
+
+
+    
 
     /**
      * 生成JwtAccessToken 访问令牌
@@ -24,12 +31,17 @@ class JsonWebTokenService
         // 1. 生成header
         $header = json_encode(['alg' => self::$algo, 'typ' => 'JWT']);
         $base64Header = self::base64UrlEncode($header);
+
+        //添加访问令牌过期时间
+        if(empty($payload['exp'])){
+            $payload['exp']= $payload['iat']+self::$access_token_time_to_live;
+        }
  
         // 2. 生成payload
         $base64Payload = self::base64UrlEncode(json_encode($payload));
  
         // 3. 生成signature
-        $signature = hash_hmac('sha256', "$base64Header.$base64Payload", self::$secretKey, true);
+        $signature = hash_hmac('sha256', "$base64Header.$base64Payload", self::$secret_key, true);
         $base64Signature = self::base64UrlEncode($signature);
  
         // 4. 组合JWT
@@ -40,13 +52,11 @@ class JsonWebTokenService
 
 
 //     // 配置
-// $secretKey = "YOUR_SECRET_KEY"; // 保持密钥安全
+// $secret_key = "YOUR_SECRET_KEY"; // 保持密钥安全
 // $issuer = "YOUR_ISSUER"; // 令牌的签发者
 // $audience = "YOUR_AUDIENCE"; // 令牌的接收方
 // $accessTokenTTL = 3600; // 访问令牌的有效时间（秒）
 // $refreshTokenTTL = 7200; // 刷新令牌的有效时间（秒）
-
-
 
 // // 生成JWT访问令牌 
 // $accessTokenPayload = [
@@ -57,7 +67,7 @@ class JsonWebTokenService
 //     'sub' => 'user_id_here', // 用户标识
 //     'role' => 'user' // 用户角色
 // ];
-// $jwtAccessToken = JWT::encode($accessTokenPayload, $secretKey, 'HS256');
+// $jwtAccessToken = JWT::encode($accessTokenPayload, $secret_key, 'HS256');
  
 // // 生成JWT刷新令牌
 // $refreshTokenPayload = [
@@ -77,10 +87,19 @@ class JsonWebTokenService
      * @return string
      */
     public static function generateJwtAccessTokenOrJwtRefreshToken($access_token_payload,$refresh_token_payload){
-
 // 1. 生成header
 $header = json_encode(['alg' => self::$algo, 'typ' => 'JWT']);
 $base64Header = self::base64UrlEncode($header);
+
+//添加访问令牌过期时间
+if(empty($access_token_payload['exp'])){
+    $access_token_payload['exp']= $access_token_payload['iat']+self::$access_token_time_to_live;
+}
+
+//添加刷新令牌过期时间
+if(empty($refresh_token_payload['exp'])){
+    $refresh_token_payload['exp']= $refresh_token_payload['iat']+self::$refresh_token_time_to_live;
+}
 
 // 2. 生成payload
 $base64_access_token_payload = self::base64UrlEncode(json_encode($access_token_payload));
@@ -88,10 +107,10 @@ $base64_access_token_payload = self::base64UrlEncode(json_encode($access_token_p
 $base64_refresh_token_payload = self::base64UrlEncode(json_encode($refresh_token_payload));
 
 // 3. 生成signature
-$signature_access_token = hash_hmac('sha256', "$base64Header.$base64_access_token_payload", self::$secretKey, true);
+$signature_access_token = hash_hmac('sha256', "$base64Header.$base64_access_token_payload", self::$secret_key, true);
 $base64_signature_access_token = self::base64UrlEncode($signature_access_token);
 
-$signature_refresh_token = hash_hmac('sha256', "$base64Header.$base64_refresh_token_payload", self::$secretKey, true);
+$signature_refresh_token = hash_hmac('sha256', "$base64Header.$base64_refresh_token_payload", self::$secret_key, true);
 $base64_signature_refresh_token = self::base64UrlEncode($signature_refresh_token);
 
 // 4. 组合JWT
@@ -119,11 +138,17 @@ return ['jwt_access_token'=>$jwt_access_token,'jwt_refresh_token'=>$jwt_refresh_
                 $header = json_encode(['alg' => self::$algo, 'typ' => 'JWT']);
                 $base64Header = self::base64UrlEncode($header);
          
+                //添加临时令牌过期时间
+    if(empty($payload['exp'])){
+        $payload['exp']= $payload['iat']+self::$temporary_token_time_to_live;
+    }
+
+
                 // 2. 生成payload
                 $base64Payload = self::base64UrlEncode(json_encode($payload));
          
                 // 3. 生成signature
-                $signature = hash_hmac('sha256', "$base64Header.$base64Payload", self::$secretKey, true);
+                $signature = hash_hmac('sha256', "$base64Header.$base64Payload", self::$secret_key, true);
                 $base64Signature = self::base64UrlEncode($signature);
          
                 // 4. 组合JWT
@@ -156,7 +181,7 @@ return ['jwt_access_token'=>$jwt_access_token,'jwt_refresh_token'=>$jwt_refresh_
         $signature = self::base64UrlDecode($base64Signature);
  
         // 3. 验证签名
-        $expectedSignature = hash_hmac('sha256', "$base64Header.$base64Payload", self::$secretKey, true);
+        $expectedSignature = hash_hmac('sha256', "$base64Header.$base64Payload", self::$secret_key, true);
         if (!hash_equals($signature, $expectedSignature)) {
             return false;
         }
@@ -165,10 +190,30 @@ return ['jwt_access_token'=>$jwt_access_token,'jwt_refresh_token'=>$jwt_refresh_
         if (isset($payload['exp']) && $payload['exp'] < time()) {
             return false;
         }
+    //    dd($payload);
  
         return $payload;
     }
     
+
+    /**
+     * 验证JWT 令牌名称的有效期
+     * 
+     * @param string $token JWT令牌
+     * @return array|bool 如果验证成功返回true，否则返回false
+     */
+    public static function verifyTokenNameTimeToLive($current_token_name,$current_time_to_live)
+    {
+
+        $token_time_to_live=['access_token'=>self::$temporary_token_time_to_live,'refresh_token'=>self::$refresh_token_time_to_live,'temporary_token'=>self::$temporary_token_time_to_live];
+        $time_to_live=$token_time_to_live[$current_token_name];
+        //如果设置令牌有效期等于地址携带令牌有效期，那么返回true
+        if($time_to_live===$current_time_to_live){
+            return true;
+         }
+        //  默认返回false
+        return false;
+    }
 
 
      /**

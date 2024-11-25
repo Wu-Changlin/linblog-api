@@ -40,7 +40,7 @@ $parts_array = explode('/', $no_domain_name_str);
 
 // 数组长度小于2
 if (count($parts_array) < 2) {
-    echo 111;
+    // echo 111;
     abort(404); //人为触发 404 错误
 }
 
@@ -52,7 +52,7 @@ $filtered_array_return_empty_elements = array_filter($parts_array, function ($va
 // 实例 访问 http://localhost:9090/  打印var_dump($parts_array); 输出 array(2) { [0]=> string(0) "" [1]=> string(0) "" }
 // 数组存在空值元素 
 if ($filtered_array_return_empty_elements) {
-    echo 222;
+    // echo 222;
     abort(404); //人为触发 404 错误
 }
 
@@ -61,7 +61,7 @@ $current_prefix_name = $parts_array[1];
 
 //匹配失败 匹配字符串以大小写字母开头，由大小写字母，数字和下划线组成。
 if (!preg_match('/^[a-zA-Z][a-zA-Z0-9_]+/is', $current_prefix_name)) {
-    echo 333;
+    // echo 333;
     abort(404); //人为触发 404 错误
 }
 
@@ -69,7 +69,7 @@ if (!preg_match('/^[a-zA-Z][a-zA-Z0-9_]+/is', $current_prefix_name)) {
 $contains_results = str_contains($prefix_data_str, $current_prefix_name);
 
 if (!$contains_results) { //如果没有包含,那么人为触发 404 错误
-    echo 444;
+    // echo 444;
     abort(404); //人为触发 404 错误
 }
 // 添加中间件组到middleware_name
@@ -128,8 +128,8 @@ Route::middleware($current_prefix_name)->group(function () {
             // 如果 method 所指的方法在 object_or_class 所指的对象类中已定义，则返回 true，否则返回 false。
             if (method_exists($con, $action)) {
                 // 调用方法
-                return $con->{$action}($request);
-                // return \App::call([$con, $action]);
+                // return $con->{$action}($request);
+                return \App::call([$con, $action]);
             }
         }
         die('No route found , Please check url parameters');

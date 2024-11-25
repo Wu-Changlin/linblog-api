@@ -29,7 +29,7 @@ nonce的意思是仅一次有效的随机字符串，要求每次请求时该参
 如果有，说明这个 key 在 60s 内已经被使用了，那么这个请求就可以判断为重放请求。
 */
 
-class CheckRequest
+class CheckRequestTimestampAndNonceAndSign
 {
 
     //限制时间
@@ -113,9 +113,9 @@ class CheckRequest
 
    
 
-//    echo $request_params_sign;
-//    echo "</br>";
-//    echo $server_current_sign;
+   echo $request_params_sign;
+   echo "</br>";
+   echo $server_current_sign;
    if($server_current_sign!=$request_params_sign){
     sendMSG(403, [], '无效签名!');
    }
