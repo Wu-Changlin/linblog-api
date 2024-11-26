@@ -42,6 +42,7 @@ class User extends Model
         $nick_name = $allow_data['nick_name'];
         $where = [['nick_name', '=',  $nick_name]];
     
+
         $is_logged_in_res = self::where($where)->select('is_logged_in');
         if($is_logged_in_res && $is_logged_in_res===1) {
             return true;
@@ -49,6 +50,41 @@ class User extends Model
 
         return false;
     }
+
+    /**
+     *  验证账号
+     * email
+     * password
+     * account_status 账号状态 0：默认，1：正常，2：获取过多验证码锁定，3：多次输入错误密码锁定，4：销号',
+     * is_enable  '是否启用	0：默认， 1： 是 	 ，2：否',
+     * @param $data 查询数据
+     * @return bool   true 是， false 否
+     */
+    public static function verifyAccount($data){
+
+        if (empty($data)) { //如果$data为空直接返回
+            return 0;
+        }
+        
+        $allow_data = $data;
+    
+        // 多条件查询
+        $where = [
+            ['email', '=',  $allow_data['email']],
+            ['password', '=',  $allow_data['password']],
+        ];
+    
+
+        // 查询字段account_status,is_enable
+        $res = self::where($where)->select('account_status,is_enable');
+        // 如果账号状态和启用状态的值都是是1，那么返true
+        if($res['account_status']===1 && $res['is_enable']===1){
+            return true;
+        }
+
+        return false;
+    }
+    
 
      /**
      *  判断该昵称用户是否存在

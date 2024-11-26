@@ -13,7 +13,7 @@ use DB;
 class CheckTokenInBackendModular
 {
     // 状态 关闭：false，开启：true
-    private $status = false;
+    private static $status = false;
 
     /**
      * 处理请求
@@ -26,7 +26,7 @@ class CheckTokenInBackendModular
     {
 
          // 开启检查token
-         if ($this->status == true) {
+         if (self::$status == true) {
             // 使用Request实例的header方法获取Authorization标头
             $authorizationHeader = $request->header('Authorization');
 

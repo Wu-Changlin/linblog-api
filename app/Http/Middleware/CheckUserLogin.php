@@ -11,7 +11,7 @@ use App\Services\IpBlackListService;
 class CheckUserLogin
 {
     // 状态 关闭：false，开启：true
-    private $status = true;
+    private static $status = true;
 
     /**
      * 处理请求
@@ -23,7 +23,7 @@ class CheckUserLogin
     public function handle(Request $request, Closure $next)
     {
         // 开启检查黑名单IP
-        if ($this->status == true) {
+        if (self::$status == true) {
             //  访客ip
             $visitor_ip = getVisitorIP();
             $data = [

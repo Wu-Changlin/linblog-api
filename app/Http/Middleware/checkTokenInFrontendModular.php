@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 class checkTokenInFrontendModular
 {
     // 状态 关闭：false，开启：true
-    private $status = false;
+    private static $status = false;
 
     /**
      * 处理请求
@@ -24,7 +24,7 @@ class checkTokenInFrontendModular
     {
 
         // 开启token
-        if ($this->status == true) {
+        if (self::$status == true) {
             // 使用Request实例的header方法获取Authorization标头
             $authorizationHeader = $request->header('Authorization');
         

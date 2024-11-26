@@ -8,23 +8,22 @@ use Illuminate\Http\Request;
 use Redis;//加载Redis扩展类
 
 
-
 /* 实现检测请求次数的功能 */
 
 class CheckRequestNumber
 {
 
      // 状态 关闭：false，开启：true
-     private $status = false;
+     private static $status = false;
     //时间内访问的总次数
 
-    private $total = 0;
+    private static $total = 0;
     //时间内最大访问次数
-    private $max_frequency = 10;
+    private static $max_frequency = 10;
     //限制时间
-    private $limit_time = 60;
+    private static $limit_time = 60;
     //黑名单锁定时间
-    private $black_list_lock_time=180;
+    private static $black_list_lock_time=180;
 
     //当前时间
     private $now_time;
@@ -37,7 +36,7 @@ class CheckRequestNumber
     {
 
         // 开启检测请求次数
-        if($this->status == true){
+        if(self::$status == true){
 
         //  访客ip
         $visitor_ip = getVisitorIP();
@@ -57,10 +56,10 @@ class CheckRequestNumber
         //        $redis->flushAll();exit;//清空redis的所有库
         $lock_time = $redis->zScore('request_number_user_black_list', $visitor_ip); //返回有序集中key中成员member的score
         // 黑名单锁定时间 目前设置3分钟
-        if ($this->now_time - $lock_time < $this->black_list_lock_time) {
+        if (($this->now_time - $lock_time) < self::$black_list_lock_time) {
             // return 1; //在黑名单中
             // 黑名单锁定分钟
-            $black_list_lock_minute=($this->black_list_lock_time)/60;
+            $black_list_lock_minute=(self::$black_list_lock_time)/60;
             sendMSG(403, [], '因为调用接口频繁，所以封禁'.$black_list_lock_minute.'分钟。');
 
         } else {
@@ -78,19 +77,19 @@ class CheckRequestNumber
             #设置key自增
             $redis->incr($visitor_ip); //将key中存储的数字值增1
             #设置过期时间为60秒
-            $redis->expire($visitor_ip, $this->limit_time); //给key值设置生存时间
+            $redis->expire($visitor_ip, self::$limit_time); //给key值设置生存时间
         } 
         //存在
         if($ip_value){
             // 当前访问次数小于时间内最大访问次数
-            if($ip_value< $this->max_frequency) {
+            if($ip_value< self::$max_frequency) {
                 $redis->incr($visitor_ip);
             }
         }
         
         #集合里边的元素不会重复 字符串
         #把ip当做key 存入redis 请求次数用户黑名单锁定时间 目前设置3分钟（180）
-        if ($ip_value >= $this->max_frequency) {
+        if ($ip_value >= self::$max_frequency) {
             #使用有序集合
             $redis->zAdd('request_number_user_black_list',$this->now_time, $visitor_ip); //命令用于将一个或者是多个于是怒以及分数值加入到有序集合中
             // return 2; //调用接口频繁

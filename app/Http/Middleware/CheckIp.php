@@ -11,7 +11,7 @@ use App\Services\IpBlackListService;
 class CheckIp
 {
     // 状态 关闭：false，开启：true
-    private $status = true;
+    private static $status = false;
     // ip库
     private $StoreIp = ['127.0.0.1', '127.0.0.1'];
 
@@ -26,7 +26,7 @@ class CheckIp
     public function handle(Request $request, Closure $next)
     {
         // 开启检查黑名单IP
-        if ($this->status == true) {
+        if (self::$status == true) {
         
             //  访客ip
             $visitor_ip = getVisitorIP();

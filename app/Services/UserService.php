@@ -72,11 +72,28 @@ class UserService
      */
     public static function isNickNameUserExist($data) {
 
-        $logout_res = UserModels::isNickNameUserExist($data); //是否存在
+        $res = UserModels::isNickNameUserExist($data); //是否存在
         
-        return $logout_res;
+        return $res;
         
     }
+
+
+       /**
+     *  验证账号状态
+     * @param $data 查询数据
+     * @return bool   true 是， false 否
+     */
+    public static function verifyAccount($data) {
+
+        $res = UserModels::verifyAccount($data); //是否正常
+        
+        return $res;
+        
+    }
+
+
+    
 
     // 其他用户相关的服务方法
 }
