@@ -64,5 +64,19 @@ class UserService
         
     }
 
+
+        /**
+     *  判断该昵称用户是否存在
+     * @param $data 查询数据
+     * @return bool   true 是， false 否
+     */
+    public static function isNickNameUserExist($data) {
+
+        $logout_res = UserModels::isNickNameUserExist($data); //是否存在
+        
+        return $logout_res;
+        
+    }
+
     // 其他用户相关的服务方法
 }

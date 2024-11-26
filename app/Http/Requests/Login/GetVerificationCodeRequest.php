@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Login;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
 
-class GoLoginRequest extends FormRequest
+class GetVerificationCodeRequest extends FormRequest
 {
 
     /**
@@ -55,8 +55,13 @@ class GoLoginRequest extends FormRequest
     {
 
     //required 不能为空 | 匹配字符串是否包含字母、数字
+    // 正则表达式用于验证SHA-256输出格式的表达式为：^[0-9a-fA-F]{64}$‌。
+    // 这个表达式确保字符串由64个十六进制字符组成，每个字符可以是0到9或a到f的大写或小写形式‌
         $rules =  [
-            'email_verification_code' => 'required|regex:/^[A-Za-z0-9]+$/'
+            'email' => 'required|regex:/^\s*\w+(?:\.{0,1}[\w-]+)*@[a-zA-Z0-9]+(?:[-.][a-zA-Z0-9]+)*\.[a-zA-Z]+\s*$/',
+            'password' => 'required|regex:/^[0-9a-fA-F]{64}$/',
+            'validate_code' => 'required|regex:/^[A-Za-z0-9]+$/',
+
         ];
         return $rules;
 
@@ -67,8 +72,12 @@ class GoLoginRequest extends FormRequest
      */
     public function  messages(){
         return [
-            'email_verification_code.required'=>'邮箱验证码不能为空',
-            'email_verification_code.regex'=>'邮箱验证码格式错误',
+            'email.required'=>'邮箱不能为空',
+            'email.regex'=>'邮箱格式错误',
+            'password.required'=>'密码不能为空',
+            'password.regex'=>'密码格式错误',
+            'validate_code.required'=>'验证码不能为空',
+            'validate_code.regex'=>'验证码格式错误',
         ];
 
     }

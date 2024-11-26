@@ -50,6 +50,32 @@ class User extends Model
         return false;
     }
 
+     /**
+     *  判断该昵称用户是否存在
+     * @param $data 查询数据
+     * @return bool   true 是， false 否
+     */
+    public static function isNickNameUserExist($data)
+    {
+        if (empty($data)) { //如果$data为空直接返回
+            return 0;
+        }
+        $allow_data = $data;
+        // -nick_name
+        $nick_name = $allow_data['nick_name'];
+        $where = [['nick_name', '=',  $nick_name]];
+    
+        $is_nick_name_res = self::where($where)->select('is_logged_in');
+        if($is_nick_name_res && $is_nick_name_res===1) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+
+    
 
 
     /**

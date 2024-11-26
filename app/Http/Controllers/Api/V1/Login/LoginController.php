@@ -5,13 +5,15 @@ namespace App\Http\Controllers\Api\V1\Login;
 use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
-use App\Http\Requests\GoLoginRequest;
+// 验证提交参数
+use  App\Http\Requests\Login\GoLoginRequest;
+use  App\Http\Requests\Login\GetVerificationCodeRequest;
+
 
 use App\Services\UserService;
 use App\Services\VerificationCodeService;
 use App\Services\JsonWebTokenService;
-
-
+use Illuminate\Contracts\Auth\UserProvider;
 
 /**
  * Class LoginController  博客后台登录和退出   保证用户信息安全用psot请求
@@ -66,7 +68,7 @@ class LoginController extends Controller
     //  请求邮箱验证码次数昵称黑名单  锁定时间
     //    request_email_validate_code_number_nick_name_black_list 记录  time  nick_name
     //  post  email 用户邮箱  password 用户密码  validate_code 登录验证码 动态生成
-    public function goVerifyLoginAccount()
+    public function goVerifyLoginAccount(GetVerificationCodeRequest $request)
     {
 
         // 1.验证用户信息;邮箱是否存在,密码是否正确,验证码是否存在
@@ -112,11 +114,21 @@ class LoginController extends Controller
             sendErrorMSG(403, '令牌失效');
         }
 
+        $nick_name=$temporary_token_payload['aud'];
+
+        // 根据昵称在数据库查找用户 
+
+        $is_nick_name_user_exist_result=UserService::isNickNameUserExist(['nick_name'=> $nick_name]);
+        
+        if(empty($is_nick_name_user_exist_result)){
+            sendErrorMSG(403, '用户数据错误！');
+        }
+
         //    组装access_token_payload
         $access_token_payload = [
             'iat' => time(), // 签发时间
             'iss' => 'linBlog',  // 签发者
-            'aud' => 'nick_name', // 接收者
+            'aud' => $nick_name, // 接收者
             'sub' => 'nick_name', // 用户标识
             'role' => 'user', // 用户角色
             'jti' => 'access_token'.bin2hex(random_bytes(10)) // 唯一令牌标识
@@ -126,7 +138,7 @@ class LoginController extends Controller
         $refresh_token_payload = [
             'iat' => time(), // 签发时间
             'iss' => 'linBlog',  // 签发者
-            'aud' => 'nick_name', // 接收者
+            'aud' => $nick_name, // 接收者
             'sub' => 'nick_name', // 用户标识
             'role' => 'user', // 用户角色
             'jti' => 'refresh_token'.bin2hex(random_bytes(10)) // 唯一令牌标识
@@ -135,7 +147,7 @@ class LoginController extends Controller
         // 生成JwtAccessToken和JwtRefreshToken 访问和刷新令牌 ，返回数组。
         $token_array= JsonWebTokenService::generateJwtAccessTokenOrJwtRefreshToken($access_token_payload,$refresh_token_payload);
 
-        $token_array['nick_name']=$temporary_token_payload['aud'];
+        $token_array['nick_name']=$nick_name;
     
         sendMSG('200', $token_array, '成功');
 
