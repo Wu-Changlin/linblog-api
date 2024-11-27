@@ -9,7 +9,7 @@ use \App\Common\ValidateCode;
 class VerificationCodeService
 {
 
-    public static function index()
+    public static function generateVerificationCode()
 {
 
     /**使用验证码类的方法：
@@ -35,11 +35,14 @@ $an->blue = $random_number_array[2];
 
 
 
+//  $verification_code_data=[
+//     "validate_code_path"=>'data:image/png;base64,'.$base64_image,
+//     "validate_code"=>$this->rand_num
+//  ]
+// 创建验证码
 $verification_code_data=$an->create();
+// 返回验证码和验证码图片地址
 return $verification_code_data;
-
-
-
 
 }
 

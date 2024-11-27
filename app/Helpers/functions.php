@@ -1,12 +1,6 @@
 <?php
 
 
-// 手动关闭Redis连接
-function closeRedisConnection($redis_instance){
-        // 手动关闭Redis连接
-        $redis_instance->close();
-}
-
 // 3个颜色数字，范围： 0-255
 function rgbRandomNumbers()
 {
@@ -188,4 +182,19 @@ function sendErrorMSG($code,$message = '')
     // JSON_UNESCAPED_UNICODE + JSON_UNESCAPED_SLASHES = 320
     die(json_encode($arr, 320));
 
+}
+
+// 生成一个包含大小写字母和数字的任意位随机数，默认6位
+// 接受一个参数$length，表示随机数的长度。函数内部定义了一个包含大小写字母和数字的字符串，
+// 然后通过循环随机选择字符来构建随机数。最后返回这个6位的随机数字符串。
+function generateRandomNumber($length = 6) {
+    $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    $charactersLength = strlen($characters);
+    $randomString = '';
+ 
+    for ($i = 0; $i < $length; $i++) {
+        $randomString .= $characters[rand(0, $charactersLength - 1)];
+    }
+ 
+    return $randomString;
 }

@@ -5,7 +5,9 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Redis;//加载Redis扩展类
+
+use App\Redis\RedisBase;
+
 use App\Services\SignService;
 
 
@@ -77,25 +79,20 @@ class CheckRequestTimestampAndNonceAndSign
         $request_params_nonce = $request->input('nonce');
 
         // 使用 Laravel 提供的 env() 函数来获取.env文件环境变量
-        $redis_host_value = env('REDIS_HOST');
-        $redis_password_value = env('REDIS_PASSWORD');
-        $redis_port_value = env('REDIS_PORT');
+       
         $repository_serial_number_value = env('REDIS_PREVENT_DUPLICATE_SUBMISSION_REPOSITORY_SERIAL_NUMBER');
 
 
         #一分钟接口调用只能10次
-        $redis = new Redis();
-        $redis->open($redis_host_value, $redis_port_value); //服务器连接的Ip与端口号
-        $redis->auth($redis_password_value); //redis服务的密码
-        $redis->select($repository_serial_number_value); //选择连接的redis，默认redis的库有16个
-        
+        RedisBase::_initialize(['db'=>$repository_serial_number_value]);
+
         #记录nonce
-        $nonce_value = $redis->get($request_params_nonce); //get命令用于获取指定的keyz值，如果key值不存在返回null
+        $nonce_value = RedisBase::get($request_params_nonce); //get命令用于获取指定的keyz值，如果key值不存在返回null
         // 不存在
         if (!$nonce_value) {
             #设置过期时间为60秒
-            $redis->setex($request_params_nonce,self::$limit_time,$request_params_nonce);
-            // $redis->expire($visitor_ip, ); //给key值设置生存时间
+            RedisBase::setex($request_params_nonce,self::$limit_time,$request_params_nonce);
+            // RedisBase::expire($visitor_ip, ); //给key值设置生存时间
         } 
         //存在
         // if($nonce_value){
@@ -120,7 +117,9 @@ class CheckRequestTimestampAndNonceAndSign
     sendMSG(403, [], '无效签名!');
    }
 
-
+ // 关闭连接
+ RedisBase::close();
+ 
         return $next($request);
     }
 }

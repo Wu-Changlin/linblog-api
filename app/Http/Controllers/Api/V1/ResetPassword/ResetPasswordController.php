@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use App\Http\Requests\loginRequest;
 
 use App\Services\JsonWebTokenService;
-use App\Services\VerificationCodeService;
 
 
 use Firebase\JWT\JWT;

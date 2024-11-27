@@ -13,7 +13,11 @@ use  App\Http\Requests\Login\GetVerificationCodeRequest;
 use App\Services\UserService;
 use App\Services\VerificationCodeService;
 use App\Services\JsonWebTokenService;
-use Illuminate\Contracts\Auth\UserProvider;
+use App\Services\ResetPasswordEmailAndVerificationCodeForRedisService;
+
+
+// use App\Redis\RedisBase;
+
 
 /**
  * Class LoginController  博客后台登录和退出   保证用户信息安全用psot请求
@@ -26,30 +30,61 @@ class LoginController extends Controller
     /**
      *获取验证码
      * redis 存储 validate_code_IP:{'validate_code':validate_code}  计数 
-   * 每24小时只能获取21次  request_validate_code_number_list 记录  number  ip
-   * 检查redis 是否有验证码；有：删除 重建；否：添加（保证只有一条关于验证码的记录）
-      *  请求验证码次数ip黑名单  锁定时间
-   *    request_validate_code_number_ip_black_list 记录  time  ip
-   * request_validate_code_number_list
+     * 每24小时只能获取21次  request_validate_code_number_list 记录  number  ip
+     * 检查redis 是否有验证码；有：删除 重建；否：添加（保证只有一条关于验证码的记录）
+     *  请求验证码次数ip黑名单  锁定时间
+     *    request_validate_code_number_ip_black_list 记录  time  ip
+     * request_validate_code_number_list
      */
     public function getVerificationCode()
     {
-
-        // $verification_code_service_data= [ 
-        //     ["validate_code_path"]=> "data:image/png;base64,iVBORw0KGgoAAAA...",
-        //     ["validate_code"]=>  "zKBgMj"
-        // ]
-
+        // 生成类型
+        $type_name = 'validate_code';
+         //  访客ip
+         $visitor_ip = getVisitorIP();
         // 1.检查redis该ip是否存在黑名单中
-        // 2.检查redis该ip是否达到限制次数每24小时只能获取21次
-        // 3.检查redis 是否有验证码；有：删除 重建；否：添加  （保证只有一条关于验证码的记录） 
 
+        //  结果返回 1：空记录，true：是，false：否 
+        $is_ip_or_nick_name_in_black_list_exist_result = ResetPasswordEmailAndVerificationCodeForRedisService::isIpOrNickNameInBlackListExist($type_name,$visitor_ip);
+
+        // 在黑名单中情景
+        if ($is_ip_or_nick_name_in_black_list_exist_result === true) {
+            // 黑名单锁定分钟
+            $validate_code_limit_period=env('VALIDATE_CODE_LIMIT_PERIOD');
+            $black_list_lock_minute=$validate_code_limit_period / 60;
+
+            $error_msg = '因为调用生成信息接口频繁，所以封禁' . $black_list_lock_minute . '分钟。';
+            sendErrorMSG(403, $error_msg);
+        }
+
+        // 2.检查redis该ip是否达到限制次数每24小时只能获取21次
+        // IP或nick_name是否达到限制次数 返回 true：是，false：否
+        $is_ip_or_nick_name_in_limit_number_achieve_result = ResetPasswordEmailAndVerificationCodeForRedisService::isIpOrNickNameInLimitNumberAchieve($type_name,$visitor_ip);
+
+        // 达到限制次数写入黑名单
+        if ($is_ip_or_nick_name_in_limit_number_achieve_result) {
+            sendErrorMSG(403, '获取验证码已达到限制次数！');
+        }
+
+        // 3.检查redis 是否有验证码；有：删除 重建；否：添加  （保证只有一条关于验证码的记录）
         // 生成验证码和验证图片
-        $verification_code_service_data = VerificationCodeService::index();
+        $verification_code_data = VerificationCodeService::generateVerificationCode();
+
+        // 组装redis存储数据
+        $verification_code_save_data = [
+            "validate_code" =>  $verification_code_data['validate_code']
+        ];
         // echo '验证码：';
-        // var_dump($verification_code_service_data);
-        // echo '<img src="'.$verification_code_service_data["validate_code_path"].'" alt="Image" />';
-        sendMSG('200', ['validate_code_path' => $verification_code_service_data["validate_code_path"], 'ccc' => '中国'], '成功');
+        // var_dump($verification_code_save_data);
+        // echo '<img src="'.$verification_code_save_data["validate_code_path"].'" alt="Image" />';
+        // true：成功保存，false：空数据， string：错误消息，
+        $save_generate_info_result = ResetPasswordEmailAndVerificationCodeForRedisService::saveGenerateInfo($type_name, '', $verification_code_save_data);
+
+        if (empty($save_generate_info_result)) {
+            sendErrorMSG(403, '获取验证码失败！');
+        }
+
+        sendMSG('200', ['validate_code_path' => $verification_code_data["validate_code_path"], 'ccc' => '中国'], '成功');
     }
 
 
@@ -57,7 +92,7 @@ class LoginController extends Controller
     // redis 存储 validate_code_IP:{'validate_code':validate_code}  计数 
     // 每24小时只能获取21次  request_validate_code_number_list 记录  number  ip
     // 检查redis 是否有验证码；有：删除 重建；否：添加（保证只有一条关于验证码的记录）
-       //  请求验证码次数ip黑名单  锁定时间
+    //  请求验证码次数ip黑名单  锁定时间
     //    request_validate_code_number_ip_black_list 记录  time  ip
     public function getLoginPageData()
     {
@@ -76,30 +111,61 @@ class LoginController extends Controller
     public function goVerifyLoginAccount(GetVerificationCodeRequest $request)
     {
 
-        //         // 要存储的数据
-        // $redis_save_data = [
-        //     'temporary_token' => 'temporary_token',
-        //     'email_validate_code' => 'email_validate_code',
-        // ];
-        
-        // // 将数组转换为JSON字符串
-        // $json_string = json_encode($redis_save_data);
-        
-        // // 存储JSON字符串到Redis，key为'user:1'
-        // $redis->set('email_validate_code_nick_name', $json_string);
-
-
         // 1.验证用户信息;邮箱是否存在,密码是否正确
 
-        $verify_account_result=UserService::verifyAccount();
+        $nick_name='nick_name';
 
-        if(empty($verify_account_result)){
+                // 生成类型
+                $type_name = 'email_validate_code';
+                // 2.检查redis该ip是否存在黑名单中
+        
+                //  结果返回 1：空记录，true：是，false：否 
+                $is_ip_or_nick_name_in_black_list_exist_result = ResetPasswordEmailAndVerificationCodeForRedisService::isIpOrNickNameInBlackListExist($type_name,$nick_name);
+        
+                // 在黑名单中情景
+                if ($is_ip_or_nick_name_in_black_list_exist_result === true) {
+                    // 黑名单锁定分钟
+                    $email_validate_code_limit_period=env('EMAIL_VALIDATE_CODE_LIMIT_PERIOD');
+            $black_list_lock_minute=$email_validate_code_limit_period / 60;
+
+            $error_msg = '因为调用生成信息接口频繁，所以封禁' . $black_list_lock_minute . '分钟。';
+                    sendErrorMSG(403, $error_msg);
+                }
+        
+                // 3.检查redis该ip是否达到限制次数每24小时只能获取21次
+                // IP或nick_name是否达到限制次数 返回 true：是，false：否
+                $is_ip_or_nick_name_in_limit_number_achieve_result = ResetPasswordEmailAndVerificationCodeForRedisService::isIpOrNickNameInLimitNumberAchieve($type_name,$nick_name);
+        
+                // 达到限制次数写入黑名单
+                if ($is_ip_or_nick_name_in_limit_number_achieve_result) {
+                    sendErrorMSG(403, '获取邮箱验证码已达到限制次数！');
+                }
+        
+                // 4.检查redis 是否有验证码；有：删除 重建；否：添加  （保证只有一条关于验证码的记录）
+                // 生成一个包含大小写字母和数字的任意位随机数，默认6位
+                $email_validate_code_data = generateRandomNumber(6);
+        
+                // 组装redis存储数据
+                $email_validate_code_save_data = [
+                    "email_validate_code" =>  $email_validate_code_data
+                ];
+
+                $save_generate_info_result = ResetPasswordEmailAndVerificationCodeForRedisService::saveGenerateInfo($type_name, $nick_name, $email_validate_code_save_data);
+        
+                if (empty($save_generate_info_result)) {
+                    sendErrorMSG(403, '获取邮箱验证码失败！');
+                }
+
+
+        // $verify_account_result=UserService::verifyAccount();
+
+        if (empty($verify_account_result)) {
             sendErrorMSG(403, '验证账号失败！');
         }
 
         // 2.验证用户是否登录
 
-        
+
         //    组装temporary_token_payload
         $temporary_token_payload = [
             'iat' => time(), // 签发时间
@@ -107,7 +173,7 @@ class LoginController extends Controller
             'aud' => 'nick_name', // 接收者
             'sub' => 'nick_name', // 用户标识
             'role' => 'user', // 用户角色
-            'jti' => 'temporary_token'.bin2hex(random_bytes(10)) // 唯一令牌标识
+            'jti' => 'temporary_token' . bin2hex(random_bytes(10)) // 唯一令牌标识
         ];
 
 
@@ -132,22 +198,22 @@ class LoginController extends Controller
         }
 
         // 获取请求参数的临时令牌 
-        $request_temporary_token= $request->input('temporary_token'); 
+        $request_temporary_token = $request->input('temporary_token');
 
         // 校验临时令牌  有效期5分钟。如果验证成功返回payload，否则返回false
-        $temporary_token_payload=JsonWebTokenService::verifyJWT($request_temporary_token);
+        $temporary_token_payload = JsonWebTokenService::verifyJWT($request_temporary_token);
 
-        if(empty($temporary_token_payload)){
+        if (empty($temporary_token_payload)) {
             sendErrorMSG(403, '令牌失效');
         }
 
-        $nick_name=$temporary_token_payload['aud'];
+        $nick_name = $temporary_token_payload['aud'];
 
         // 根据昵称在数据库查找用户 
 
-        $is_nick_name_user_exist_result=UserService::isNickNameUserExist(['nick_name'=> $nick_name]);
-        
-        if(empty($is_nick_name_user_exist_result)){
+        $is_nick_name_user_exist_result = UserService::isNickNameUserExist(['nick_name' => $nick_name]);
+
+        if (empty($is_nick_name_user_exist_result)) {
             sendErrorMSG(403, '用户数据错误！');
         }
 
@@ -158,7 +224,7 @@ class LoginController extends Controller
             'aud' => $nick_name, // 接收者
             'sub' => 'nick_name', // 用户标识
             'role' => 'user', // 用户角色
-            'jti' => 'access_token'.bin2hex(random_bytes(10)) // 唯一令牌标识
+            'jti' => 'access_token' . bin2hex(random_bytes(10)) // 唯一令牌标识
         ];
 
         //    组装refresh_token_payload
@@ -168,16 +234,15 @@ class LoginController extends Controller
             'aud' => $nick_name, // 接收者
             'sub' => 'nick_name', // 用户标识
             'role' => 'user', // 用户角色
-            'jti' => 'refresh_token'.bin2hex(random_bytes(10)) // 唯一令牌标识
+            'jti' => 'refresh_token' . bin2hex(random_bytes(10)) // 唯一令牌标识
 
         ];
         // 生成JwtAccessToken和JwtRefreshToken 访问和刷新令牌 ，返回数组。
-        $token_array= JsonWebTokenService::generateJwtAccessTokenOrJwtRefreshToken($access_token_payload,$refresh_token_payload);
+        $token_array = JsonWebTokenService::generateJwtAccessTokenOrJwtRefreshToken($access_token_payload, $refresh_token_payload);
 
-        $token_array['nick_name']=$nick_name;
-    
+        $token_array['nick_name'] = $nick_name;
+
         sendMSG('200', $token_array, '成功');
-
     }
 
 
