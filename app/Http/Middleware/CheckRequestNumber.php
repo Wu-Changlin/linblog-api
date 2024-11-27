@@ -5,8 +5,9 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Redis;//加载Redis扩展类
+// use Redis;//加载Redis扩展类
 
+use App\Redis\RedisBase;
 
 /* 实现检测请求次数的功能 */
 
@@ -14,7 +15,7 @@ class CheckRequestNumber
 {
 
      // 状态 关闭：false，开启：true
-     private static $status = false;
+     private static $status = true;
     //时间内访问的总次数
 
     private static $total = 0;
@@ -34,6 +35,22 @@ class CheckRequestNumber
 
     public function handle(Request $request, Closure $next)
     {
+        $visitor_ip = getVisitorIP();
+        // 初始化类
+        RedisBase::_initialize($config=['db'=>1]);
+
+    
+        $lock_time =RedisBase::zScore('request_number_user_black_list', $visitor_ip); 
+
+        RedisBase::close();
+        echo   $lock_time;
+
+        $lock_time =RedisBase::zScore('request_number_user_black_list', $visitor_ip); 
+
+        echo 'close后再查：'.$lock_time;
+   
+
+        dd($lock_time);
 
         // 开启检测请求次数
         if(self::$status == true){
@@ -60,7 +77,7 @@ class CheckRequestNumber
             // return 1; //在黑名单中
             // 黑名单锁定分钟
             $black_list_lock_minute=(self::$black_list_lock_time)/60;
-            sendMSG(403, [], '因为调用接口频繁，所以封禁'.$black_list_lock_minute.'分钟。');
+            sendErrorMSG(403,  '因为调用接口频繁，所以封禁'.$black_list_lock_minute.'分钟。');
 
         } else {
             /*
@@ -93,7 +110,7 @@ class CheckRequestNumber
             #使用有序集合
             $redis->zAdd('request_number_user_black_list',$this->now_time, $visitor_ip); //命令用于将一个或者是多个于是怒以及分数值加入到有序集合中
             // return 2; //调用接口频繁
-            sendMSG(403, [], '调用接口频繁');
+            sendErrorMSG(403,'调用接口频繁');
         }
     }
         return $next($request);

@@ -18,20 +18,38 @@ define('RESET_PASSWORD_TOKEN_TIME_TO_LIVE', env('RESET_PASSWORD_TOKEN_TIME_TO_LI
 class ResetPasswordEmailAndVerificationCodeForRedisService
 {
 
-  /* 有效期 开始*/
+    /* 有效期 （单位：秒） 开始*/
 
     //因为系统设置validate_code有效期5分钟 ，所以redis设置过期时间应保持一致
-    private static $validate_code_time_to_live=VALIDATE_CODE_TIME_TO_LIVE;//有效期7天
+    private static $validate_code_time_to_live = VALIDATE_CODE_TIME_TO_LIVE; //有效期7天
 
     //因为登录使用temporary_token有效期5分钟 ，所以redis设置过期时间应保持一致
-    private static $temporary_token_time_to_live=TEMPORARY_TOKEN_TIME_TO_LIVE;//有效期5分钟
+    private static $temporary_token_time_to_live = TEMPORARY_TOKEN_TIME_TO_LIVE; //有效期5分钟
 
     //因为重置密码使用reset_password_token 有效期3小时 ，所以redis设置过期时间应保持一致
-    private static $reset_password_token_time_to_live=RESET_PASSWORD_TOKEN_TIME_TO_LIVE;//有效期3小时
+    private static $reset_password_token_time_to_live = RESET_PASSWORD_TOKEN_TIME_TO_LIVE; //有效期3小时
 
- /* 有效期 结束*/
+    /* 有效期 结束*/
+
+    //  有效期
+    //  private static $time_to_live = [
+    //     'validate_code' => self::$validate_code_time_to_live,
+    //     'email_validate_code' => self::$temporary_token_time_to_live,
+    //     'reset_password_email' => self::$reset_password_token_time_to_live
+    // ];
+
 
     /* 验证码（登录页）、 邮箱验证码、 重置密码链接邮件*/
+
+
+    // 生成信息的存活时间
+    private static $time_to_live = [
+        'validate_code' => VALIDATE_CODE_TIME_TO_LIVE,
+        'email_validate_code' => TEMPORARY_TOKEN_TIME_TO_LIVE,
+        'reset_password_email' => RESET_PASSWORD_TOKEN_TIME_TO_LIVE
+    ];
+
+
     // 存生成信息的key_name
     private static $save_data_key_name = [
         'validate_code' => 'validate_code_',
@@ -51,12 +69,25 @@ class ResetPasswordEmailAndVerificationCodeForRedisService
         'reset_password_email' => 'request_reset_password_email_number_nick_name_black_list'
     ];
 
+    // 生成信息的限制次数
+    private static $request_generate_info_limit_number = [
+        'validate_code' => 21,
+        'email_validate_code' => 3,
+        'reset_password_email' => 3
+    ];
 
-    
+    // 生成信息的限制时期  （单位：秒）24小时= 86400秒
+    private static $request_generate_info_limit_period = [
+        'validate_code' => 86400,
+        'email_validate_code' => 86400,
+        'reset_password_email' => 86400
+    ];
+
+
 
     //获取页面配置（如页面标题、页面关键词、页面描述、网站log、登录验证码）
     // redis 存储 validate_code_IP:{'validate_code':validate_code}  计数 
-    // 每24小时只能获取21次  request_validate_code_number_list 记录  name  ip
+    // 每24小时只能获取21次  request_validate_code_number_list + ip记录  number  ip
     // 检查redis 是否有验证码；有：删除 重建；否：添加（保证只有一条关于验证码的记录）
     //  请求验证码次数ip黑名单  锁定时间
     //    request_validate_code_number_ip_black_list 记录  time  ip
@@ -64,7 +95,7 @@ class ResetPasswordEmailAndVerificationCodeForRedisService
 
     //去验证登录账号 redis 存储 email_validate_code_nick_name:{'temporary_token':temporary_token},临时令牌 temporary_token（含有用户信息）为值
     //   返回临时令牌 temporary_token 和发送邮箱验证码  设置有效期5分钟
-    // 每24小时内仅可获取3次邮件验证码   request_email_validate_code_number_list 记录  name  nick_name
+    // 每24小时内仅可获取3次邮件验证码   request_email_validate_code_number_list +nick_name  记录  number  nick_name
     // 检查redis 是否有验证码；有：删除 重建；否：添加 （保证只有一条关于验证码的记录） 
     //  请求邮箱验证码次数昵称黑名单  锁定时间
     //    request_email_validate_code_number_nick_name_black_list 记录  time  nick_name
@@ -75,7 +106,7 @@ class ResetPasswordEmailAndVerificationCodeForRedisService
 
     //发送重置密码链接邮件   返回send_reset_password_email_result  成功true 失败 false
     //redis 存储  reset_password_email_nick_name:{'temporary_token':temporary_token} 生成的临时令牌 temporary_token  设置有效期3小时
-    // 每24小时内仅可发送3次重置密码邮件 request_reset_password_email_number_list 记录  number  nick_name
+    // 每24小时内仅可发送3次重置密码邮件 request_reset_password_email_number_list + nick_name 记录  number  nick_name
     // 检查redis 是否有重置密码链接；有：删除 重建；否：添加 （保证只有一条关于重置密码链接的记录） 
     //  请求重置密码链接次数昵称黑名单  锁定时间
     //     request_reset_password_email_number_nick_name_black_list 记录  time  nick_name
@@ -86,10 +117,11 @@ class ResetPasswordEmailAndVerificationCodeForRedisService
      * @description: 
      * @param {*} $type_name  生成信息类型名
      * @param {*} $data       生成信息
-     * @return {*}
+     * @return {*} true：成功保存，false：空数据， string：错误消息，
      */
-    public static function saveGenerateInfo($type_name, $data)
+    public static function saveGenerateInfo($type_name, $nick_name, $data)
     {
+        //如果是空数据，那么直接返回
         if (empty($data)) {
             return false;
         }
@@ -110,142 +142,214 @@ class ResetPasswordEmailAndVerificationCodeForRedisService
         $redis->auth($redis_password_value); //redis服务的密码
         $redis->select($repository_serial_number_value); //选择连接的redis，默认redis的库有16个
 
-        // 存储JSON字符串到Redis，key为生成信息的key_name
-        $redis->set(self::$save_data_key_name[$type_name], $json_string);
+        /* 添加生成信息记录  开始*/
 
-        //  访客ip
-        $visitor_ip = getVisitorIP();
-        
-        //        $redis->flushAll();exit;//清空redis的所有库
-        $lock_time = $redis->zScore('request_number_user_black_list', $visitor_ip); //返回有序集中key中成员member的score
-        // 黑名单锁定时间 目前设置3分钟
-        if ($this->now_time - $lock_time < $this->black_list_lock_time) {
-            // return 1; //在黑名单中
+        //没有用户昵称情景 验证码（登录页）
+        if (empty($nick_name)) {
+            //  访客ip
+            $visitor_ip = getVisitorIP();
+            $query_key = $visitor_ip;
+            // 存储JSON字符串到Redis，key为生成信息的key_name
+            $redis_save_data_key_name = self::$save_data_key_name[$type_name] + $visitor_ip;
+        }
+
+        //有用户昵称情景
+        if ($nick_name) {
+            $query_key = $nick_name;
+            // 存储JSON字符串到Redis，key为生成信息的key_name
+            $redis_save_data_key_name = self::$save_data_key_name[$type_name] + $nick_name;
+        }
+        // 获取相应生成信息的类型生存时间
+        $generate_info_time_to_live = self::$time_to_live[$type_name];
+        #设置过期时间为相应生成信息的类型生存时间
+        // $redis->setex($key_name, $seconds, $value); $seconds=单位：秒
+        //  setex 是『SET if Not eXists』(如果不存在，则 SET)的简写
+        // 如果 key 已经存在， SETEX 命令将覆写旧值。
+        // 返回值 设置成功时返回 OK ；当 seconds 参数不合法时，返回一个错误。 
+        $redis->setex($redis_save_data_key_name, $generate_info_time_to_live, $json_string); //给key值设置生存时间
+        /* 添加生成信息记录 结束*/
+
+        //当前时间
+        $now_time = time();
+
+        /* 检查是否存在黑名单 开始*/
+
+
+        //  结果返回 1：空记录，true：是，false：否 
+        $is_ip_or_in_black_list_exist_result = self::isIpOrNickNameInBlackListExist($type_name);
+        //黑名单名称
+        $black_list_name = self::$request_generate_info_number_black_list[$type_name];
+
+        // 在黑名单中情景
+        if ($is_ip_or_in_black_list_exist_result === true) {
             // 黑名单锁定分钟
-            $black_list_lock_minute = ($this->black_list_lock_time) / 60;
-            sendMSG(403, [], '因为调用接口频繁，所以封禁' . $black_list_lock_minute . '分钟。');
-        } else {
+            $black_list_lock_minute = (self::$time_to_live[$type_name]) / 60;
+            $error_msg = '因为调用生成信息接口频繁，所以封禁' . $black_list_lock_minute . '分钟。';
+            return $error_msg;
+        }
+
+        // 不在黑名单中情景
+        if ($is_ip_or_in_black_list_exist_result === false) {
             /*
             Redis的ZREM命令用于删除有序集合中的一个或多个成员，当删除最后一个元素时，
             有序集合仍然存在，除非该有序集合中没有其他元素，此时整个有序集合会被删除‌。
             */
-            $redis->zRem('request_number_user_black_list', $visitor_ip); //redis中zRem命令用于移除有序集合中的一个或者是多个成员，不存在的成员将被忽略，当key存在但是不是有序集合类型是，返回一个错误
+            $redis->zRem($black_list_name,  $query_key); //redis中zRem命令用于移除有序集合中的一个或者是多个成员，不存在的成员将被忽略，当key存在但是不是有序集合类型是，返回一个错误
+
         }
 
-        #记录访问次数
-        $ip_value = $redis->get($visitor_ip); //get命令用于获取指定的keyz值，如果key值不存在返回null
-        // 不存在
-        if (!$ip_value) {
-            #设置key自增
-            $redis->incr($visitor_ip); //将key中存储的数字值增1
-            #设置过期时间为60秒
-            $redis->expire($visitor_ip, $this->limit_time); //给key值设置生存时间
+        /* 检查是否存在黑名单 结束*/
+
+        /* 操作生成信息的请求次数 开始*/
+        // 记录生成次数，key name为相应生成信息的类型对应字符串+$query_key（ip或nick_name）
+        $add_or_edit_generate_info_number_in_number_list_result=self::addOrEditGenerateInfoNumberInNumberList($type_name);
+        
+        if(empty($add_or_edit_generate_info_number_in_number_list_result)){
+            $error_msg = '写入数据错误！';
+            return $error_msg;
         }
-        //存在
-        if ($ip_value) {
-            // 当前访问次数小于时间内最大访问次数
-            if ($ip_value < $this->max_frequency) {
-                $redis->incr($visitor_ip);
-            }
-        }
+        /* 操作生成信息的请求次数 结束*/
+
+        /* 操作黑名单 开始*/
 
         #集合里边的元素不会重复 字符串
-        #把ip当做key 存入redis 请求次数用户黑名单锁定时间 目前设置3分钟（180）
-        if ($ip_value >= $this->max_frequency) {
-            #使用有序集合
-            $redis->zAdd('request_number_user_black_list', $this->now_time, $visitor_ip); //命令用于将一个或者是多个于是怒以及分数值加入到有序集合中
+        #把ip当做key 存入redis 请求次数用户黑名单锁定时间 目前设置相应生成信息的类型限制时期
+        // IP或nick_name是否达到限制次数 返回 true：是，false：否
+        $is_ip_or_nick_name_in_limit_number_achieve_result=self::isIpOrNickNameInLimitNumberAchieve($type_name);
+        // 达到限制次数写入黑名单
+        if ($is_ip_or_nick_name_in_limit_number_achieve_result) {
+            #使用有序集合  $query_key（ip或nick_name）
+            $redis->zAdd($black_list_name, $now_time,  $query_key); //命令用于将一个或者是多个于是怒以及分数值加入到有序集合中
             // return 2; //调用接口频繁
-            sendMSG(403, [], '调用接口频繁');
+            $error_msg = '调用生成信息接口频繁！';
+            return $error_msg;
         }
+        /* 操作黑名单 结束*/
+        // 手动关闭Redis连接
+        closeRedisConnection($redis);
+
+        return true;
     }
 
 
-
-    //请求生成信息次数名单
-    public static function requestGenerateInfoNumberList($data)
+    // IP或nick_name是否存在黑名单中  返回 1：空记录，true：是，false：否 
+    public static function isIpOrNickNameInBlackListExist($type_name)
     {
-
-        //  访客ip
-        $visitor_ip = getVisitorIP();
         // 使用 Laravel 提供的 env() 函数来获取.env文件环境变量
         $redis_host_value = env('REDIS_HOST');
         $redis_password_value = env('REDIS_PASSWORD');
         $redis_port_value = env('REDIS_PORT');
         $repository_serial_number_value = env('RESET_PASSWORD_EMAIL_AND_VERIFICATION_CODE_FOR_REDIS_SERVICE_SERIAL_NUMBER');
-
-        #一分钟接口调用只能10次
+        // 连接redis
         $redis = new Redis();
         $redis->open($redis_host_value, $redis_port_value); //服务器连接的Ip与端口号
         $redis->auth($redis_password_value); //redis服务的密码
         $redis->select($repository_serial_number_value); //选择连接的redis，默认redis的库有16个
 
+        //当前时间
+        $now_time = time();
+        //黑名单名称
+        $black_list_name = self::$request_generate_info_number_black_list[$type_name];
 
         //        $redis->flushAll();exit;//清空redis的所有库
-        $lock_time = $redis->zScore('request_number_user_black_list', $visitor_ip); //返回有序集中key中成员member的score
-        // 黑名单锁定时间 目前设置3分钟
-        if ($this->now_time - $lock_time < $this->black_list_lock_time) {
+        $lock_time = $redis->zScore($black_list_name,  $type_name); //返回有序集中key中成员member的score
+
+        // 手动关闭Redis连接
+        closeRedisConnection($redis);
+
+        // 空记录 返回1
+        if (empty($lock_time)) {
+            return 1;
+        }
+        // 黑名单锁定时间 根据生成信息类型设置
+        if ($now_time - $lock_time < self::$time_to_live[$type_name]) {
             // return 1; //在黑名单中
             // 黑名单锁定分钟
-            $black_list_lock_minute = ($this->black_list_lock_time) / 60;
-            sendMSG(403, [], '因为调用接口频繁，所以封禁' . $black_list_lock_minute . '分钟。');
-        } else {
-            /*
-            Redis的ZREM命令用于删除有序集合中的一个或多个成员，当删除最后一个元素时，
-            有序集合仍然存在，除非该有序集合中没有其他元素，此时整个有序集合会被删除‌。
-            */
-            $redis->zRem('request_number_user_black_list', $visitor_ip); //redis中zRem命令用于移除有序集合中的一个或者是多个成员，不存在的成员将被忽略，当key存在但是不是有序集合类型是，返回一个错误
+            return true;
         }
 
-        #记录访问次数
-        $ip_value = $redis->get($visitor_ip); //get命令用于获取指定的keyz值，如果key值不存在返回null
-        // 不存在
-        if (!$ip_value) {
-            #设置key自增
-            $redis->incr($visitor_ip); //将key中存储的数字值增1
-            #设置过期时间为60秒
-            $redis->expire($visitor_ip, $this->limit_time); //给key值设置生存时间
+        return false;
+    }
+
+    // IP或nick_name是否达到限制次数 返回 true：是，false：否
+    public static function isIpOrNickNameInLimitNumberAchieve($type_name)
+    {
+        // 使用 Laravel 提供的 env() 函数来获取.env文件环境变量
+        $redis_host_value = env('REDIS_HOST');
+        $redis_password_value = env('REDIS_PASSWORD');
+        $redis_port_value = env('REDIS_PORT');
+        $repository_serial_number_value = env('RESET_PASSWORD_EMAIL_AND_VERIFICATION_CODE_FOR_REDIS_SERVICE_SERIAL_NUMBER');
+        // 连接redis
+        $redis = new Redis();
+        $redis->open($redis_host_value, $redis_port_value); //服务器连接的Ip与端口号
+        $redis->auth($redis_password_value); //redis服务的密码
+        $redis->select($repository_serial_number_value); //选择连接的redis，默认redis的库有16个
+        // 拼接key_name
+        $generate_info_number_key_name = self::$request_generate_info_number_list_name[$type_name] + $type_name;
+        // 获取生成信息次数
+        $total_generate_info_number_value = $redis->get($generate_info_number_key_name);
+        // 最大请求生成信息次数
+        $max_request_generate_info_number = self::$request_generate_info_limit_number[$type_name];
+        // 手动关闭Redis连接
+        closeRedisConnection($redis);
+        // 如果存在记录且生成信息次数=最大请求生成信息次数，那么返回true
+        if ($total_generate_info_number_value && $total_generate_info_number_value === $max_request_generate_info_number) {
+            // 当前生成信息次数小于时间内最大生成信息次数
+            return true;
         }
-        //存在
-        if ($ip_value) {
-            // 当前访问次数小于时间内最大访问次数
-            if ($ip_value < $this->max_frequency) {
-                $redis->incr($visitor_ip);
+        return false;
+    }
+
+
+    // 在请求生成信息次数名单添加或修改生成信息次数 返回  true：操作成功，false：操作失败
+    public static function addOrEditGenerateInfoNumberInNumberList($type_name)
+    {
+        // 使用 Laravel 提供的 env() 函数来获取.env文件环境变量
+        $redis_host_value = env('REDIS_HOST');
+        $redis_password_value = env('REDIS_PASSWORD');
+        $redis_port_value = env('REDIS_PORT');
+        $repository_serial_number_value = env('RESET_PASSWORD_EMAIL_AND_VERIFICATION_CODE_FOR_REDIS_SERVICE_SERIAL_NUMBER');
+        // 连接redis
+        $redis = new Redis();
+        $redis->open($redis_host_value, $redis_port_value); //服务器连接的Ip与端口号
+        $redis->auth($redis_password_value); //redis服务的密码
+        $redis->select($repository_serial_number_value); //选择连接的redis，默认redis的库有16个
+
+        $generate_info_number_key_name = self::$request_generate_info_number_list_name[$type_name] + $type_name;
+
+        $total_generate_info_number_value = $redis->get($generate_info_number_key_name); //get命令用于获取指定的keyz值，如果key值不存在返回null
+
+        // 不存在  添加记录
+        if (!$total_generate_info_number_value) {
+            // 获取相应生成信息的类型限制时期
+            $generate_info_limit_period = self::$request_generate_info_limit_period[$type_name];
+            #设置过期时间为相应生成信息的类型限制时期  
+            // 验证码（登录页）、 邮箱验证码、 重置密码链接邮件都是24小时= 86400秒
+            $redis->setex($generate_info_number_key_name, $generate_info_limit_period, 1); //给key值设置生存时间
+
+            return true;
+        }
+
+        // 最大请求生成信息次数
+        $max_request_generate_info_number = self::$request_generate_info_limit_number[$type_name];
+        // 存在  修改生成信息次数
+        if ($total_generate_info_number_value) {
+            // 当前生成信息次数小于时间内最大生成信息次数
+            if ($total_generate_info_number_value < $max_request_generate_info_number) {
+                #设置key自增
+                $redis->incr($generate_info_number_key_name);
+                return true;
             }
         }
 
-        #集合里边的元素不会重复 字符串
-        #把ip当做key 存入redis 请求次数用户黑名单锁定时间 目前设置3分钟（180）
-        if ($ip_value >= $this->max_frequency) {
-            #使用有序集合
-            $redis->zAdd('request_number_user_black_list', $this->now_time, $visitor_ip); //命令用于将一个或者是多个于是怒以及分数值加入到有序集合中
-            // return 2; //调用接口频繁
-            sendMSG(403, [], '调用接口频繁');
-        }
+        return false;
     }
+
+    //请求生成信息次数名单
+    public static function requestGenerateInfoNumberList($data) {}
 
     //请求生成信息次数黑名单
-    public static function requestGenerateInfoNumberBlackList($data)
-    {
-        if (empty($data)) { //如果$data为空直接返回
-            return 0;
-        }
-        $add_black_ip_res = IpBlackListModel::addIpBlackList($data); //执行新增
-
-        switch ($add_black_ip_res) { //判断新增返回值
-            case 0:
-                return  '数据为空';
-                break;
-            case 1:
-                return  '邮箱已注册';
-                break;
-            case 2:
-                return  "新增管理员成功";
-                break;
-            default:
-                return  '数据写入失败,新增管理员失败';
-        }
-    }
-
+    public static function requestGenerateInfoNumberBlackList($data) {}
 
 
     // 其他用户相关的服务方法

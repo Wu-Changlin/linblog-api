@@ -26,10 +26,11 @@ class LoginController extends Controller
     /**
      *获取验证码
      * redis 存储 validate_code_IP:{'validate_code':validate_code}  计数 
-   * 每24小时只能获取21次  request_validate_code_number_list 记录  name  ip
+   * 每24小时只能获取21次  request_validate_code_number_list 记录  number  ip
    * 检查redis 是否有验证码；有：删除 重建；否：添加（保证只有一条关于验证码的记录）
       *  请求验证码次数ip黑名单  锁定时间
    *    request_validate_code_number_ip_black_list 记录  time  ip
+   * request_validate_code_number_list
      */
     public function getVerificationCode()
     {
@@ -39,7 +40,9 @@ class LoginController extends Controller
         //     ["validate_code"]=>  "zKBgMj"
         // ]
 
-        // 检查redis 是否有验证码；有：删除 重建；否：添加  （保证只有一条关于验证码的记录） 
+        // 1.检查redis该ip是否存在黑名单中
+        // 2.检查redis该ip是否达到限制次数每24小时只能获取21次
+        // 3.检查redis 是否有验证码；有：删除 重建；否：添加  （保证只有一条关于验证码的记录） 
 
         // 生成验证码和验证图片
         $verification_code_service_data = VerificationCodeService::index();
@@ -52,7 +55,7 @@ class LoginController extends Controller
 
     //获取页面配置（如页面标题、页面关键词、页面描述、网站log、登录验证码）
     // redis 存储 validate_code_IP:{'validate_code':validate_code}  计数 
-    // 每24小时只能获取21次  request_validate_code_number_list 记录  name  ip
+    // 每24小时只能获取21次  request_validate_code_number_list 记录  number  ip
     // 检查redis 是否有验证码；有：删除 重建；否：添加（保证只有一条关于验证码的记录）
        //  请求验证码次数ip黑名单  锁定时间
     //    request_validate_code_number_ip_black_list 记录  time  ip
@@ -65,7 +68,7 @@ class LoginController extends Controller
 
     //去验证登录账号 redis 存储 email_validate_code_nick_name:{'temporary_token':temporary_token},临时令牌 temporary_token（含有用户信息）为值
     //   返回临时令牌 temporary_token 和发送邮箱验证码  设置有效期5分钟
-    // 每24小时内仅可获取3次邮件验证码   request_email_validate_code_number_list 记录  name  nick_name
+    // 每24小时内仅可获取3次邮件验证码   request_email_validate_code_number_list 记录  number  nick_name
     // 检查redis 是否有验证码；有：删除 重建；否：添加 （保证只有一条关于验证码的记录） 
     //  请求邮箱验证码次数昵称黑名单  锁定时间
     //    request_email_validate_code_number_nick_name_black_list 记录  time  nick_name
@@ -73,17 +76,17 @@ class LoginController extends Controller
     public function goVerifyLoginAccount(GetVerificationCodeRequest $request)
     {
 
-                // 要存储的数据
-        $redis_save_data = [
-            'temporary_token' => 'temporary_token',
-            'email_validate_code' => 'email_validate_code',
-        ];
+        //         // 要存储的数据
+        // $redis_save_data = [
+        //     'temporary_token' => 'temporary_token',
+        //     'email_validate_code' => 'email_validate_code',
+        // ];
         
-        // 将数组转换为JSON字符串
-        $json_string = json_encode($redis_save_data);
+        // // 将数组转换为JSON字符串
+        // $json_string = json_encode($redis_save_data);
         
-        // 存储JSON字符串到Redis，key为'user:1'
-        $redis->set('email_validate_code_nick_name', $json_string);
+        // // 存储JSON字符串到Redis，key为'user:1'
+        // $redis->set('email_validate_code_nick_name', $json_string);
 
 
         // 1.验证用户信息;邮箱是否存在,密码是否正确

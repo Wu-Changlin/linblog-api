@@ -1,4 +1,12 @@
 <?php
+
+
+// 手动关闭Redis连接
+function closeRedisConnection($redis_instance){
+        // 手动关闭Redis连接
+        $redis_instance->close();
+}
+
 // 3个颜色数字，范围： 0-255
 function rgbRandomNumbers()
 {
