@@ -36,10 +36,19 @@ class UserService
         }
     }
 
+
+// 用户登录
+    public static function userLogin($data)
+    {
+        $user_login_res = UserModels::userLogin($data);
+        return $user_login_res;
+
+    }
+
+
     // 判断用户已登录  is_logged_in  true 是， false 否
     public static function isLogin($data)
     {
-
         $is_login_res = UserModels::getUserLoginStatus($data);
         return $is_login_res;
     }

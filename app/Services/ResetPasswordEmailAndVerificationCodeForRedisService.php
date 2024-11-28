@@ -3,57 +3,15 @@
 // app/Services/UserService.php
 
 namespace App\Services;
-
-use App\Models\IpBlackList as IpBlackListModel;
-
 use App\Redis\RedisBase;
-
-// 在框架启动的时候读取.env文件中的KEY值，并将其赋给一个常量，然后在类中使用这个常量来初始化你的私有静态属性。
-
-define('VALIDATE_CODE_TIME_TO_LIVE', env('VALIDATE_CODE_TIME_TO_LIVE'));
-define('TEMPORARY_TOKEN_TIME_TO_LIVE', env('TEMPORARY_TOKEN_TIME_TO_LIVE'));
-define('RESET_PASSWORD_TOKEN_TIME_TO_LIVE', env('RESET_PASSWORD_TOKEN_TIME_TO_LIVE'));
-
-define('VALIDATE_CODE_LIMIT_PERIOD', env('VALIDATE_CODE_LIMIT_PERIOD'));
-define('EMAIL_VALIDATE_CODE_LIMIT_PERIOD', env('EMAIL_VALIDATE_CODE_LIMIT_PERIOD'));
-define('RESET_PASSWORD_EMAIL_LIMIT_PERIOD', env('RESET_PASSWORD_EMAIL_LIMIT_PERIOD'));
-
-
 
 // 重置密码电子邮件和验证码的Redis服务
 class ResetPasswordEmailAndVerificationCodeForRedisService
 {
 
-    /* 有效期 （单位：秒） 开始*/
-
-    //因为系统设置validate_code有效期5分钟 ，所以redis设置过期时间应保持一致
-    private static $validate_code_time_to_live = VALIDATE_CODE_TIME_TO_LIVE; //有效期7天
-
-    //因为登录使用temporary_token有效期5分钟 ，所以redis设置过期时间应保持一致
-    private static $temporary_token_time_to_live = TEMPORARY_TOKEN_TIME_TO_LIVE; //有效期5分钟
-
-    //因为重置密码使用reset_password_token 有效期3小时 ，所以redis设置过期时间应保持一致
-    private static $reset_password_token_time_to_live = RESET_PASSWORD_TOKEN_TIME_TO_LIVE; //有效期3小时
-
-    /* 有效期 结束*/
-
-    //  有效期
-    //  private static $time_to_live = [
-    //     'validate_code' => self::$validate_code_time_to_live,
-    //     'email_validate_code' => self::$temporary_token_time_to_live,
-    //     'reset_password_email' => self::$reset_password_token_time_to_live
-    // ];
-
 
     /* 验证码（登录页）、 邮箱验证码、 重置密码链接邮件*/
 
-
-    // 生成信息的存活时间
-    private static $time_to_live = [
-        'validate_code' => VALIDATE_CODE_TIME_TO_LIVE,
-        'email_validate_code' => TEMPORARY_TOKEN_TIME_TO_LIVE,
-        'reset_password_email' => RESET_PASSWORD_TOKEN_TIME_TO_LIVE
-    ];
 
 
     // 存生成信息的key_name
@@ -83,13 +41,28 @@ class ResetPasswordEmailAndVerificationCodeForRedisService
     ];
 
 
-    
-    // 生成信息的限制时期  （单位：秒）24小时= 86400秒
-    private static $request_generate_info_limit_period = [
-        'validate_code' => VALIDATE_CODE_LIMIT_PERIOD,
-        'email_validate_code' => EMAIL_VALIDATE_CODE_LIMIT_PERIOD,
-        'reset_password_email' => RESET_PASSWORD_EMAIL_LIMIT_PERIOD
-    ];
+     // 获取生成信息的存活时间
+    public static function getTimeToLive($type_name){
+        $time_to_live = [
+                'validate_code' => env('VALIDATE_CODE_TIME_TO_LIVE'),
+                'email_validate_code' => env('TEMPORARY_TOKEN_TIME_TO_LIVE'),
+                'reset_password_email' => env('RESET_PASSWORD_TOKEN_TIME_TO_LIVE')
+            ];
+
+            return   $time_to_live[$type_name];
+    }
+
+
+     // 获取生成信息的限制时期  （单位：秒）24小时= 86400秒
+    public static function getRequestGenerateInfoLimitPeriod($type_name){
+        $request_generate_info_limit_period = [
+                'validate_code' => env('VALIDATE_CODE_LIMIT_PERIOD'),
+                'email_validate_code' => env('EMAIL_VALIDATE_CODE_LIMIT_PERIOD'),
+                'reset_password_email' => env('RESET_PASSWORD_EMAIL_LIMIT_PERIOD')
+            ];
+
+            return   $request_generate_info_limit_period[$type_name];
+    }
 
     /**
      * 检查保存生成信息
@@ -148,7 +121,7 @@ class ResetPasswordEmailAndVerificationCodeForRedisService
         // 在黑名单中情景
         if ($is_ip_or_nick_name_in_black_list_exist_result === true) {
             // 黑名单锁定分钟
-            $black_list_lock_minute = (self::$request_generate_info_limit_period[$type_name]) / 60;
+            $black_list_lock_minute = (self::getRequestGenerateInfoLimitPeriod($type_name)) / 60;
             $error_msg = '因为调用生成信息接口频繁，所以封禁' . $black_list_lock_minute . '分钟。';
             return $error_msg;
         }
@@ -202,7 +175,7 @@ class ResetPasswordEmailAndVerificationCodeForRedisService
     public static function getValidateCodeOrEmailValidateCodeOrResetPasswordEmail($type_name,$query_key){
         // 使用 Laravel 提供的 env() 函数来获取.env文件环境变量
         $repository_serial_number_value = env('RESET_PASSWORD_EMAIL_AND_VERIFICATION_CODE_FOR_REDIS_SERVICE_SERIAL_NUMBER');
-
+        
         // 连接redis
         RedisBase::_initialize(['db' => $repository_serial_number_value]);
 
@@ -237,7 +210,7 @@ class ResetPasswordEmailAndVerificationCodeForRedisService
         $redis_save_data_key_name = self::$save_data_key_name[$type_name] . $query_key;
 
         // 获取相应生成信息的类型生存时间
-        $generate_info_time_to_live = self::$time_to_live[$type_name];
+        $generate_info_time_to_live = self::getTimeToLive($type_name);
         #设置过期时间为相应生成信息的类型生存时间
         //  RedisBase::setex($key_name, $seconds, $value); $seconds=单位：秒
         //  setex 是『SET if Not eXists』(如果不存在，则 SET)的简写
@@ -289,7 +262,7 @@ class ResetPasswordEmailAndVerificationCodeForRedisService
         // }
 
         // 黑名单锁定时间 根据生成信息类型设置
-        if ($now_time - $lock_time < self::$request_generate_info_limit_period[$type_name]) {
+        if ($now_time - $lock_time < self::getRequestGenerateInfoLimitPeriod($type_name)) {
             // return 1; //在黑名单中
             // 黑名单锁定分钟
             return true;
@@ -353,7 +326,7 @@ class ResetPasswordEmailAndVerificationCodeForRedisService
         // 不存在  添加记录
         if (!$total_generate_info_number_value) {
             // 获取相应生成信息的类型限制时期
-            $generate_info_limit_period = self::$request_generate_info_limit_period[$type_name];
+            $generate_info_limit_period = self::getRequestGenerateInfoLimitPeriod($type_name);
             #设置过期时间为相应生成信息的类型限制时期  
             // 验证码（登录页）、 邮箱验证码、 重置密码链接邮件都是24小时= 86400秒
              RedisBase::setex($generate_info_number_key_name, $generate_info_limit_period, 1); //给key值设置生存时间

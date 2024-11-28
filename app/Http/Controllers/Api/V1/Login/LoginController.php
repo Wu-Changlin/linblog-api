@@ -117,15 +117,27 @@ class LoginController extends Controller
     public function goVerifyLoginAccount(GetVerificationCodeRequest $request)
     {
 
+        // $temporary_token_payload = [
+        //     'iat' => time(), // 签发时间
+        //     'iss' => 'linBlog',  // 签发者
+        //     'aud' => 'nick_name', // 接收者
+        //     'sub' => 'nick_name', // 用户标识
+        //     'role' => 'user', // 用户角色
+        //     'jti' => 'temporary_token' . bin2hex(random_bytes(10)) // 唯一令牌标识
+        // ];
+
+
+        // $temporary_token =  JsonWebTokenService::generateTemporaryToken($temporary_token_payload);
+
+        // sendMSG('200', ['temporary_token' => $temporary_token], '成功');
+        
         $request_params_all_data = $request->all();
-        // 1.验证用户信息;邮箱是否存在,密码是否正确
+        // 1.验证用户账号状态、是否启用;以邮箱和密码为查询条件
         $verify_account_data=[
             'email'=>$request_params_all_data['email'],
             'password'=>$request_params_all_data['password']
         ];
 
-        // ['email', '=',  $allow_data['email']],
-        //     ['password', '=',  $allow_data['password']],
             // $verify_account_result=UserService::verifyAccount($verify_account_data);
 
             // if (empty($verify_account_result)) {
@@ -136,9 +148,9 @@ class LoginController extends Controller
             $is_logged_in_data=['email'=>$request_params_all_data['email']];
 // is_logged_in  true 是， false 否
             $is_logged_in_result=UserService::isLogin($is_logged_in_data);
- // if ($is_logged_in_result) {
-            //     sendErrorMSG(403, '请勿重复登录！');
-            // }
+ if ($is_logged_in_result) {
+                sendErrorMSG(403, '请勿重复登录！');
+            }
 
 
 
@@ -238,8 +250,7 @@ class LoginController extends Controller
         if (empty($request_params_email_verification_code)) {
             sendErrorMSG(403, '空邮箱验证码');
         }
-
-
+              //   1.检查临时令牌
 
         // 获取请求参数的临时令牌 
         $request_temporary_token = $request->input('temporary_token');
@@ -247,44 +258,91 @@ class LoginController extends Controller
         // 校验临时令牌  有效期5分钟。如果验证成功返回payload，否则返回false
         $temporary_token_payload = JsonWebTokenService::verifyJWT($request_temporary_token);
 
-        if (empty($temporary_token_payload)) {
-            sendErrorMSG(403, '令牌失效');
-        }
+        // if (empty($temporary_token_payload)) {
+        //     sendErrorMSG(403, '令牌失效');
+        // }
 
+       
         $nick_name = $temporary_token_payload['aud'];
+     
 
-        // 根据昵称在数据库查找用户 
+          // 2.检查提交参数的邮箱验证码是否存在redis中
+          $type_name = 'email_validate_code';
 
-        $is_nick_name_user_exist_result = UserService::isNickNameUserExist(['nick_name' => $nick_name]);
+          $get_validate_code_or_email_validate_code_or_reset_password_email_result=ResetPasswordEmailAndVerificationCodeForRedisService::getValidateCodeOrEmailValidateCodeOrResetPasswordEmail($type_name,$nick_name);
 
-        if (empty($is_nick_name_user_exist_result)) {
-            sendErrorMSG(403, '用户数据错误！');
-        }
+     
+          // 空值
+          if (empty($get_validate_code_or_email_validate_code_or_reset_password_email_result)) {
+              sendErrorMSG(403, '非法邮箱验证码！');
+          }
+
+              //    json_decode会返回对象，要返回关联数组，需要提供第二个参数true 将JSON字符串转换为数组 $array = json_decode($jsonString, true);
+
+              $get_validate_code_or_email_validate_code_or_reset_password_email_result_to_array = json_decode($get_Validate_Code_Or_Email_Validate_Code_Or_Reset_Password_Email_result, true);
+
+              // 不等于
+              if($request_params_email_verification_code !=$get_validate_code_or_email_validate_code_or_reset_password_email_result_to_array['validate_code']){
+                  sendErrorMSG(403, '校验邮箱验证码失败！');
+              }
 
 
-            // 5.检查提交参数的邮箱验证码是否存在redis中
-            $type_name = 'email_validate_code';
+      
 
-            $get_validate_code_or_email_validate_code_or_reset_password_email_result=ResetPasswordEmailAndVerificationCodeForRedisService::getValidateCodeOrEmailValidateCodeOrResetPasswordEmail($type_name,$nick_name);
+         // 3.验证用户账号状态、是否启用;以用户昵称为查询条件
+        $verify_account_data=[
+            'nick_name'=>$nick_name,
+            'password'=>$request_params_all_data['password']
+        ];
+            // $verify_account_result=UserService::verifyAccount($verify_account_data);
 
-            // 空值
-            if (empty($get_validate_code_or_email_validate_code_or_reset_password_email_result)) {
-                sendErrorMSG(403, '非法邮箱验证码！');
-            }
-
-                //    json_decode会返回对象，要返回关联数组，需要提供第二个参数true 将JSON字符串转换为数组 $array = json_decode($jsonString, true);
-
-                $get_validate_code_or_email_validate_code_or_reset_password_email_result_to_array = json_decode($get_Validate_Code_Or_Email_Validate_Code_Or_Reset_Password_Email_result, true);
-
-                // 不等于
-                if($request_params_email_verification_code !=$get_validate_code_or_email_validate_code_or_reset_password_email_result_to_array['validate_code']){
-                    sendErrorMSG(403, '校验邮箱验证码失败！');
-                }
+     
+            // if (empty($verify_account_result)) {
+            //     sendErrorMSG(403, '验证账号失败！');
+            // }
     
 
+
+        // 4.验证用户是否已登录
+        $is_logged_in_data = ['nick_name' => $nick_name];
+        // is_logged_in  true 是， false 否
+        $is_logged_in_result = UserService::isLogin($is_logged_in_data);
+        if ($is_logged_in_result) {
+            sendErrorMSG(403, '请勿重复登录！');
+        }
+
+
+    //当前时间
+    $now_time = time();
+
+   
+  // 5.执行登录
+
+   // 拼接登录数据
+
+             //  访客ip
+             $login_ip = getVisitorIP();
+
+   $login_data=[
+    'nick_name'=>$nick_name,
+    'last_login_time'=>$now_time,
+    'login_ip'=>$login_ip,
+    'is_logged_in'=>1
+];
+
+    $user_login_result = UserService::userLogin($login_data);
+
+    if(empty($user_login_result)){
+        sendErrorMSG(403, '登录失败！');
+    }
+
+    // login_ip
+    // is_logged_in 1： 是，2：否',
+
+        // 6.生成并返回token
         //    组装access_token_payload
         $access_token_payload = [
-            'iat' => time(), // 签发时间
+            'iat' =>  $now_time, // 签发时间
             'iss' => 'linBlog',  // 签发者
             'aud' => $nick_name, // 接收者
             'sub' => 'nick_name', // 用户标识
@@ -294,7 +352,7 @@ class LoginController extends Controller
 
         //    组装refresh_token_payload
         $refresh_token_payload = [
-            'iat' => time(), // 签发时间
+            'iat' =>  $now_time, // 签发时间
             'iss' => 'linBlog',  // 签发者
             'aud' => $nick_name, // 接收者
             'sub' => 'nick_name', // 用户标识
@@ -306,6 +364,8 @@ class LoginController extends Controller
         $token_array = JsonWebTokenService::generateJwtAccessTokenOrJwtRefreshToken($access_token_payload, $refresh_token_payload);
 
         $token_array['nick_name'] = $nick_name;
+
+
 
         sendMSG('200', $token_array, '成功');
     }

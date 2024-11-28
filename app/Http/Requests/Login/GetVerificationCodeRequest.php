@@ -61,7 +61,6 @@ class GetVerificationCodeRequest extends FormRequest
             'email' => 'required|regex:/^\s*\w+(?:\.{0,1}[\w-]+)*@[a-zA-Z0-9]+(?:[-.][a-zA-Z0-9]+)*\.[a-zA-Z]+\s*$/',
             'password' => 'required|regex:/^[0-9a-fA-F]{64}$/',
             'validate_code' => 'required|regex:/^[A-Za-z0-9]+$/',
-
         ];
         return $rules;
 

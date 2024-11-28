@@ -26,6 +26,58 @@ class User extends Model
 
 
 
+ /**
+     * 用户登录
+     * @param $data 登录数据  
+     * @return bool is_logged_in  true 是， false 否
+     */
+    public static function userLogin($data){
+
+        if(empty($data)){ //如果$data为空直接返回
+            return false;
+        }
+
+        $allow_data=$data;
+         // 初始化查询条件
+         $where_data = [];
+
+         // 当$allow_data['nick_name'] 已定义，且 $allow_data['nick_name']r 不为空 时，进入 true 分支
+         if(isset($allow_data['nick_name']) && !empty($allow_data['nick_name'])){
+             $nick_name_where=['nick_name', '=',  $allow_data['nick_name']];
+             // 将一个数组嵌套到另一个数组
+             $where_data=[$nick_name_where];
+         }
+ 
+         // 当$allow_data['email'] 已定义，且 $allow_data['email']r 不为空 时，进入 true 分支
+         if(isset($allow_data['email']) && !empty($allow_data['email'])){
+             $email_where=['email', '=',  $allow_data['email']];
+     
+ // 将一个数组嵌套到另一个数组
+             $where_data=[$email_where];
+         }
+     
+
+        // first()方法用于获取满足条件的第一条记录。如果查询结果为空，first()方法会返回null而不是一个空的实例对象。
+        // 这意味着如果数据库中没有找到匹配的记录，$res变量将不会被赋予任何值，而是保持为null。
+        // 有值返回实例对象‌Eloquent模型实例‌：如果查询成功找到匹配的记录，
+        // first()方法会返回一个Eloquent模型实例。例如，如果查询的是用户表，返回的将是一个User模型的实例。
+        $user_‌eloquent = self::where($where_data)->first(); //根据用户输入邮箱查询数据库管理员信息
+        if(empty($user_res)){
+            return false;
+        }
+       
+        //更新 最近登录时间、登录IP、是否登录标志
+        $user_‌eloquent->last_login_time =$allow_data['last_login_time'] ;
+        $user_‌eloquent->login_ip=$allow_data['login_ip'];
+        $user_‌eloquent->is_logged_in=1;
+        $user_‌eloquent->save();
+        //本次登录信息写入log
+        // self::addAadminLog(6,4,$admin_users->login_number,date('Y-m-d H:i:s', time()));
+        //登录成功状态
+        return true;
+
+    }
+
 
     /**
      * 获取用户登录状态 
@@ -39,7 +91,7 @@ class User extends Model
         }
         $allow_data = $data;
 
-        if(isset($var) && !empty($var)){echo "存在";}
+
         // 初始化查询条件
         $where_data = [];
 
@@ -53,7 +105,7 @@ class User extends Model
         // 当$allow_data['email'] 已定义，且 $allow_data['email']r 不为空 时，进入 true 分支
         if(isset($allow_data['email']) && !empty($allow_data['email'])){
             $email_where=['email', '=',  $allow_data['email']];
-         
+    
 // 将一个数组嵌套到另一个数组
             $where_data=[$email_where];
         }
@@ -83,16 +135,40 @@ class User extends Model
         }
         
         $allow_data = $data;
+
+          // 初始化查询条件  多条件查询？
+          $where_data = [];
+
+         
+
+          // 当$allow_data['email'] 已定义，且 $allow_data['email']r 不为空 时，进入 true 分支
+          if(isset($allow_data['email']) && !empty($allow_data['email'])){
+            $email_where=['email', '=',  $allow_data['email']];
     
-        // 多条件查询
-        $where = [
-            ['email', '=',  $allow_data['email']],
-            ['password', '=',  $allow_data['password']],
-        ];
+// 将一个数组嵌套到另一个数组
+            $where_data=[$email_where];
+        }
+  
+          // 当$allow_data['password'] 已定义，且 $allow_data['password']r 不为空 时，进入 true 分支
+          if(isset($allow_data['password']) && !empty($allow_data['password'])){
+              $email_where=['password', '=',  $allow_data['password']];
+      
+  // 将一个数组嵌套到另一个数组
+              $where_data=[$email_where];
+          }
+
+           // 当$allow_data['nick_name'] 已定义，且 $allow_data['nick_name']r 不为空 时，进入 true 分支
+           if(isset($allow_data['nick_name']) && !empty($allow_data['nick_name'])){
+            $nick_name_where=['nick_name', '=',  $allow_data['nick_name']];
+            // 将一个数组嵌套到另一个数组
+            $where_data=[$nick_name_where];
+        }
+      
+
     
 
         // 查询字段account_status,is_enable
-        $res = self::where($where)->select('account_status,is_enable');
+        $res = self::where($where_data)->select('account_status,is_enable');
         // 如果账号状态和启用状态的值都是是1，那么返true
         if($res['account_status']===1 && $res['is_enable']===1){
             return true;

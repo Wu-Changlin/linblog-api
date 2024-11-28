@@ -55,8 +55,9 @@ class GoLoginRequest extends FormRequest
     {
 
     //required 不能为空 | 匹配字符串是否包含字母、数字
+    // 6个字符组成，每个字符可以是0到9或a到z的大写或小写形式‌
         $rules =  [
-            'email_verification_code' => 'required|regex:/^\s*\w+(?:\.{0,1}[\w-]+)*@[a-zA-Z0-9]+(?:[-.][a-zA-Z0-9]+)*\.[a-zA-Z]+\s*$/'
+            'email_verification_code' => 'required|regex:/^[A-Za-z0-9]{6}$/'
         ];
         return $rules;
 
