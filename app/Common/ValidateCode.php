@@ -109,6 +109,13 @@ class ValidateCode
   {
     $this->setBgColor();
     $this->getRandNum();
+
+    // 如果没有生成随机字符串，那么直接返回false
+    if(empty($this->rand_num)){
+      return false;
+    }
+    
+
     for ($i = 0; $i < $this->len; $i++) {
       $font = rand(4, 6);
       $x = $i / $this->len * $this->im_width + rand(1, $this->len);
@@ -118,24 +125,39 @@ class ValidateCode
     }
     $this->setExtLine();
     $this->setExtPixel();
-    //  UTF-8 编码
-    header('content-type:application/json;charset=utf8');
-    header("content-type:image/png");
-    // 将生成的图片转换为Base64
+  
+    //  UTF-8 编码  注意： 没有生成图片成功header("content-type:image/png")页面响应空占位图
+
+    // header('content-type:application/json;charset=utf8');
+    // header("content-type:image/png");
+
+    // 打开输出缓冲区 
 ob_start();
+// 从指定 image 输出或保存 PNG 图像。 成功时返回 true， 或者在失败时返回 false。
     imagepng($this->im);
     
 
-
+// 用于获取当前输出缓冲区的内容并将其关闭
 $image_data = ob_get_clean();
+
+// 如果没有生成图片，那么直接返回false
+if(empty($image_data)){
+  return false;
+}
+ // 将生成的图片转换为Base64
 $base64_image = base64_encode($image_data);
-imagedestroy($this->im); //释放图像资源
+
+ //释放图像资源
+imagedestroy($this->im);
+// 用于清空最顶层的输出缓冲区并关闭输出缓冲
+ob_end_clean();
 // 输出验证码图片Base64编码的字符串和验证码
 $data=[
   "validate_code_path"=>'data:image/png;base64,'.$base64_image,
   "validate_code"=>$this->rand_num
 
 ];
+
 return  $data;
 
     // return $this->rand_num;

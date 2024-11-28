@@ -100,6 +100,8 @@ class ResetPasswordEmailAndVerificationCodeForRedisService
      */
     public static function saveGenerateInfo($type_name, $nick_name, $data)
     {
+
+      
         //如果是空数据，那么直接返回
         if (empty($data)) {
             return false;
@@ -118,39 +120,25 @@ class ResetPasswordEmailAndVerificationCodeForRedisService
         // 连接redis
         RedisBase::_initialize(['db'=>$repository_serial_number_value]);
 
-
         /* 添加生成信息记录  开始*/
 
-        //没有用户昵称情景 验证码（登录页）
-        if (empty($nick_name)) {
-            //  访客ip
-            $visitor_ip = getVisitorIP();
-            $query_key = $visitor_ip;
-            // 存储JSON字符串到Redis，key为生成信息的key_name
-            $redis_save_data_key_name = self::$save_data_key_name[$type_name].$visitor_ip;
+         // 如果nick_name存在使用nick_name，返回值是IP
+        $query_key = $nick_name?$nick_name:getVisitorIP();
+
+        $add_generate_info_result=self::addGenerateInfo($type_name,$query_key,$json_string);
+        if(empty($add_generate_info_result)){
+            $error_msg = '写入生成信息数据错误！';
+            return $error_msg;
         }
 
-        //有用户昵称情景
-        if ($nick_name) {
-            $query_key = $nick_name;
-            // 存储JSON字符串到Redis，key为生成信息的key_name
-            $redis_save_data_key_name = self::$save_data_key_name[$type_name].$nick_name;
-        }
-        // 获取相应生成信息的类型生存时间
-        $generate_info_time_to_live = self::$time_to_live[$type_name];
-        #设置过期时间为相应生成信息的类型生存时间
-        //  RedisBase::setex($key_name, $seconds, $value); $seconds=单位：秒
-        //  setex 是『SET if Not eXists』(如果不存在，则 SET)的简写
-        // 如果 key 已经存在， SETEX 命令将覆写旧值。
-        // 返回值 设置成功时返回 OK ；当 seconds 参数不合法时，返回一个错误。 
-         RedisBase::setex($redis_save_data_key_name, $generate_info_time_to_live, $json_string); //给key值设置生存时间
         /* 添加生成信息记录 结束*/
 
         //当前时间
         $now_time = time();
+        
 
         /* 检查是否存在黑名单 开始*/
-
+       
 
         //  结果返回 1：空记录，true：是，false：否 
         $is_ip_or_nick_name_in_black_list_exist_result = self::isIpOrNickNameInBlackListExist($type_name,$query_key);
@@ -182,7 +170,7 @@ class ResetPasswordEmailAndVerificationCodeForRedisService
         $add_or_edit_generate_info_number_in_number_list_result=self::addOrEditGenerateInfoNumberInNumberList($type_name,$query_key);
         
         if(empty($add_or_edit_generate_info_number_in_number_list_result)){
-            $error_msg = '写入数据错误！';
+            $error_msg = '写入次数数据错误！';
             return $error_msg;
         }
         /* 操作生成信息的请求次数 结束*/
@@ -207,6 +195,68 @@ class ResetPasswordEmailAndVerificationCodeForRedisService
         RedisBase::close();
 
         return true;
+    }
+
+
+    //获取验证码（登录页）、 邮箱验证码、 重置密码链接邮件其一  返回 成功：查询值  失败 ：false
+    public static function getValidateCodeOrEmailValidateCodeOrResetPasswordEmail($type_name,$query_key){
+        // 使用 Laravel 提供的 env() 函数来获取.env文件环境变量
+        $repository_serial_number_value = env('RESET_PASSWORD_EMAIL_AND_VERIFICATION_CODE_FOR_REDIS_SERVICE_SERIAL_NUMBER');
+
+        // 连接redis
+        RedisBase::_initialize(['db' => $repository_serial_number_value]);
+
+        /* 查询生成信息记录  开始*/
+        $redis_query_key_name = self::$save_data_key_name[$type_name] . $query_key;
+
+        // 获取查询值
+        $query_key_name_result= RedisBase::get($redis_query_key_name); //给key值设置生存时间
+
+        // 手动关闭Redis连接
+        // 关闭连接
+        RedisBase::close();
+        // 如果查询值存在，那么返回查询值
+        if ($query_key_name_result) {
+            return $query_key_name_result;
+        }
+        return false;
+
+    }
+
+
+    // 添加生成信息  query_key：用户昵称或IP
+    public static function addGenerateInfo($type_name,$query_key,$json_string) {
+        // 使用 Laravel 提供的 env() 函数来获取.env文件环境变量
+        $repository_serial_number_value = env('RESET_PASSWORD_EMAIL_AND_VERIFICATION_CODE_FOR_REDIS_SERVICE_SERIAL_NUMBER');
+
+
+        // 连接redis
+        RedisBase::_initialize(['db' => $repository_serial_number_value]);
+
+        /* 添加生成信息记录  开始*/
+        $redis_save_data_key_name = self::$save_data_key_name[$type_name] . $query_key;
+
+        // 获取相应生成信息的类型生存时间
+        $generate_info_time_to_live = self::$time_to_live[$type_name];
+        #设置过期时间为相应生成信息的类型生存时间
+        //  RedisBase::setex($key_name, $seconds, $value); $seconds=单位：秒
+        //  setex 是『SET if Not eXists』(如果不存在，则 SET)的简写
+        // 如果 key 已经存在， SETEX 命令将覆写旧值。
+        // 返回值 设置成功时返回 OK ；当 seconds 参数不合法时，返回一个错误。 
+        RedisBase::setex($redis_save_data_key_name, $generate_info_time_to_live, $json_string); //给key值设置生存时间
+
+        //  查询添加结果
+        $add_generate_info_result =  RedisBase::get($redis_save_data_key_name);
+
+        // 手动关闭Redis连接
+        // 关闭连接
+        RedisBase::close();
+        // 如果添加成功，那么返回true
+        if ($add_generate_info_result) {
+            return true;
+        }
+        return false;
+
     }
 
 

@@ -36,7 +36,7 @@ class UserService
         }
     }
 
-    // 判断用户登录 
+    // 判断用户已登录  is_logged_in  true 是， false 否
     public static function isLogin($data)
     {
 

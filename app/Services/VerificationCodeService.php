@@ -4,6 +4,7 @@
 
 namespace App\Services;
 use \App\Common\ValidateCode;
+use Throwable;
 
 
 class VerificationCodeService
@@ -11,7 +12,7 @@ class VerificationCodeService
 
     public static function generateVerificationCode()
 {
-
+    
     /**使用验证码类的方法：
  * $an = new ValidateCode(验证码长度,图片宽度,图片高度);
  * 实例化时不带参数则默认是四位的60*25尺寸的常规验证码图片
@@ -32,24 +33,29 @@ $random_number_array =rgbRandomNumbers();
 $an->red = $random_number_array[0];
 $an->green = $random_number_array[1];
 $an->blue = $random_number_array[2];
-
-
-
 //  $verification_code_data=[
 //     "validate_code_path"=>'data:image/png;base64,'.$base64_image,
 //     "validate_code"=>$this->rand_num
 //  ]
 // 创建验证码
 $verification_code_data=$an->create();
+
+// 如果没有生成验证码，那么直接返回false
+if(empty($verification_code_data)){
+return false;
+}
+
 // 返回验证码和验证码图片地址
 return $verification_code_data;
 
+
+
+
+
+
+
 }
 
-public static function create($data)
-{
-
-}
 
 
 

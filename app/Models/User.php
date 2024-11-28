@@ -38,12 +38,28 @@ class User extends Model
             return 0;
         }
         $allow_data = $data;
-        // -nick_name
-        $nick_name = $allow_data['nick_name'];
-        $where = [['nick_name', '=',  $nick_name]];
+
+        if(isset($var) && !empty($var)){echo "存在";}
+        // 初始化查询条件
+        $where_data = [];
+
+        // 当$allow_data['nick_name'] 已定义，且 $allow_data['nick_name']r 不为空 时，进入 true 分支
+        if(isset($allow_data['nick_name']) && !empty($allow_data['nick_name'])){
+            $nick_name_where=['nick_name', '=',  $allow_data['nick_name']];
+            // 将一个数组嵌套到另一个数组
+            $where_data=[$nick_name_where];
+        }
+
+        // 当$allow_data['email'] 已定义，且 $allow_data['email']r 不为空 时，进入 true 分支
+        if(isset($allow_data['email']) && !empty($allow_data['email'])){
+            $email_where=['email', '=',  $allow_data['email']];
+         
+// 将一个数组嵌套到另一个数组
+            $where_data=[$email_where];
+        }
     
 
-        $is_logged_in_res = self::where($where)->select('is_logged_in');
+        $is_logged_in_res = self::where($where_data)->select('is_logged_in');
         if($is_logged_in_res && $is_logged_in_res===1) {
             return true;
         }

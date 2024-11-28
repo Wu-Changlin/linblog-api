@@ -46,7 +46,7 @@ class LoginController extends Controller
 
         //  结果返回 1：空记录，true：是，false：否 
         $is_ip_or_nick_name_in_black_list_exist_result = ResetPasswordEmailAndVerificationCodeForRedisService::isIpOrNickNameInBlackListExist($type_name,$visitor_ip);
-
+  
         // 在黑名单中情景
         if ($is_ip_or_nick_name_in_black_list_exist_result === true) {
             // 黑名单锁定分钟
@@ -56,7 +56,7 @@ class LoginController extends Controller
             $error_msg = '因为调用生成信息接口频繁，所以封禁' . $black_list_lock_minute . '分钟。';
             sendErrorMSG(403, $error_msg);
         }
-
+    
         // 2.检查redis该ip是否达到限制次数每24小时只能获取21次
         // IP或nick_name是否达到限制次数 返回 true：是，false：否
         $is_ip_or_nick_name_in_limit_number_achieve_result = ResetPasswordEmailAndVerificationCodeForRedisService::isIpOrNickNameInLimitNumberAchieve($type_name,$visitor_ip);
@@ -65,15 +65,21 @@ class LoginController extends Controller
         if ($is_ip_or_nick_name_in_limit_number_achieve_result) {
             sendErrorMSG(403, '获取验证码已达到限制次数！');
         }
-
+     
         // 3.检查redis 是否有验证码；有：删除 重建；否：添加  （保证只有一条关于验证码的记录）
         // 生成验证码和验证图片
         $verification_code_data = VerificationCodeService::generateVerificationCode();
-
+    
+        // 如果没有生成验证码，那么直接返回false
+        if(empty($verification_code_data)){
+            sendErrorMSG(403, '生成验证码失败！');
+        }
+      
         // 组装redis存储数据
         $verification_code_save_data = [
             "validate_code" =>  $verification_code_data['validate_code']
         ];
+   
         // echo '验证码：';
         // var_dump($verification_code_save_data);
         // echo '<img src="'.$verification_code_save_data["validate_code_path"].'" alt="Image" />';
@@ -111,13 +117,36 @@ class LoginController extends Controller
     public function goVerifyLoginAccount(GetVerificationCodeRequest $request)
     {
 
+        $request_params_all_data = $request->all();
         // 1.验证用户信息;邮箱是否存在,密码是否正确
+        $verify_account_data=[
+            'email'=>$request_params_all_data['email'],
+            'password'=>$request_params_all_data['password']
+        ];
+
+        // ['email', '=',  $allow_data['email']],
+        //     ['password', '=',  $allow_data['password']],
+            // $verify_account_result=UserService::verifyAccount($verify_account_data);
+
+            // if (empty($verify_account_result)) {
+            //     sendErrorMSG(403, '验证账号失败！');
+            // }
+    
+            // 2.验证用户是否登录
+            $is_logged_in_data=['email'=>$request_params_all_data['email']];
+// is_logged_in  true 是， false 否
+            $is_logged_in_result=UserService::isLogin($is_logged_in_data);
+ // if ($is_logged_in_result) {
+            //     sendErrorMSG(403, '请勿重复登录！');
+            // }
+
+
 
         $nick_name='nick_name';
 
                 // 生成类型
                 $type_name = 'email_validate_code';
-                // 2.检查redis该ip是否存在黑名单中
+                // 3.检查redis该ip或昵称是否存在黑名单中
         
                 //  结果返回 1：空记录，true：是，false：否 
                 $is_ip_or_nick_name_in_black_list_exist_result = ResetPasswordEmailAndVerificationCodeForRedisService::isIpOrNickNameInBlackListExist($type_name,$nick_name);
@@ -132,7 +161,7 @@ class LoginController extends Controller
                     sendErrorMSG(403, $error_msg);
                 }
         
-                // 3.检查redis该ip是否达到限制次数每24小时只能获取21次
+                // 4.检查redis该ip或昵称是否达到限制次数每24小时只能获取21次
                 // IP或nick_name是否达到限制次数 返回 true：是，false：否
                 $is_ip_or_nick_name_in_limit_number_achieve_result = ResetPasswordEmailAndVerificationCodeForRedisService::isIpOrNickNameInLimitNumberAchieve($type_name,$nick_name);
         
@@ -140,8 +169,27 @@ class LoginController extends Controller
                 if ($is_ip_or_nick_name_in_limit_number_achieve_result) {
                     sendErrorMSG(403, '获取邮箱验证码已达到限制次数！');
                 }
-        
-                // 4.检查redis 是否有验证码；有：删除 重建；否：添加  （保证只有一条关于验证码的记录）
+
+                 // 5.检查提交参数的验证码是否存在redis中
+                 $validate_code_type_name = 'validate_code';
+                $get_validate_code_or_email_validate_code_or_reset_password_email_result=ResetPasswordEmailAndVerificationCodeForRedisService::getValidateCodeOrEmailValidateCodeOrResetPasswordEmail($validate_code_type_name,$nick_name);
+
+        // 空值
+                if (empty($get_validate_code_or_email_validate_code_or_reset_password_email_result)) {
+                    sendErrorMSG(403, '非法验证码！');
+                }
+
+
+            //    json_decode会返回对象，要返回关联数组，需要提供第二个参数true 将JSON字符串转换为数组 $array = json_decode($jsonString, true);
+
+            $get_validate_code_or_email_validate_code_or_reset_password_email_result_to_array = json_decode($get_Validate_Code_Or_Email_Validate_Code_Or_Reset_Password_Email_result, true);
+
+            // 不等于
+            if($request_params_all_data['validate_code']!=$get_validate_code_or_email_validate_code_or_reset_password_email_result_to_array['validate_code']){
+                sendErrorMSG(403, '校验验证码失败！');
+            }
+
+                // 6.检查redis 是否有邮箱验证码；有：覆盖；否：添加  （保证只有一条关于验证码的记录）
                 // 生成一个包含大小写字母和数字的任意位随机数，默认6位
                 $email_validate_code_data = generateRandomNumber(6);
         
@@ -149,7 +197,7 @@ class LoginController extends Controller
                 $email_validate_code_save_data = [
                     "email_validate_code" =>  $email_validate_code_data
                 ];
-
+                
                 $save_generate_info_result = ResetPasswordEmailAndVerificationCodeForRedisService::saveGenerateInfo($type_name, $nick_name, $email_validate_code_save_data);
         
                 if (empty($save_generate_info_result)) {
@@ -157,14 +205,8 @@ class LoginController extends Controller
                 }
 
 
-        // $verify_account_result=UserService::verifyAccount();
-
-        if (empty($verify_account_result)) {
-            sendErrorMSG(403, '验证账号失败！');
-        }
-
-        // 2.验证用户是否登录
-
+    
+// 7.生成并输出temporary_token
 
         //    组装temporary_token_payload
         $temporary_token_payload = [
@@ -197,6 +239,8 @@ class LoginController extends Controller
             sendErrorMSG(403, '空邮箱验证码');
         }
 
+
+
         // 获取请求参数的临时令牌 
         $request_temporary_token = $request->input('temporary_token');
 
@@ -216,6 +260,27 @@ class LoginController extends Controller
         if (empty($is_nick_name_user_exist_result)) {
             sendErrorMSG(403, '用户数据错误！');
         }
+
+
+            // 5.检查提交参数的邮箱验证码是否存在redis中
+            $type_name = 'email_validate_code';
+
+            $get_validate_code_or_email_validate_code_or_reset_password_email_result=ResetPasswordEmailAndVerificationCodeForRedisService::getValidateCodeOrEmailValidateCodeOrResetPasswordEmail($type_name,$nick_name);
+
+            // 空值
+            if (empty($get_validate_code_or_email_validate_code_or_reset_password_email_result)) {
+                sendErrorMSG(403, '非法邮箱验证码！');
+            }
+
+                //    json_decode会返回对象，要返回关联数组，需要提供第二个参数true 将JSON字符串转换为数组 $array = json_decode($jsonString, true);
+
+                $get_validate_code_or_email_validate_code_or_reset_password_email_result_to_array = json_decode($get_Validate_Code_Or_Email_Validate_Code_Or_Reset_Password_Email_result, true);
+
+                // 不等于
+                if($request_params_email_verification_code !=$get_validate_code_or_email_validate_code_or_reset_password_email_result_to_array['validate_code']){
+                    sendErrorMSG(403, '校验邮箱验证码失败！');
+                }
+    
 
         //    组装access_token_payload
         $access_token_payload = [
