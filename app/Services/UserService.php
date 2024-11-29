@@ -9,31 +9,44 @@ use App\Models\User as  UserModels;
 class UserService
 {
 
-    // 添加管理员
-    public static function addUser()
+    // 获取当前用户信息  返回  true 用户信息  ， false 失败
+    public static function getCurrentUserInfo($data){
+
+        if (empty($data)) { //如果$data为空直接返回
+            return false;
+        }
+        $get_current_user_info_res = UserModels::getCurrentUserInfo($data); //执行新增
+       
+        // 添加成功 返回true
+        if($get_current_user_info_res){
+           
+         return $get_current_user_info_res;
+        }
+
+        //返回false 失败
+        return  false;
+    }
+
+
+    // 添加用户  返回  true 成功  ， 错误消息或false 失败
+    public static function addUser($data)
     {
 
         if (empty($data)) { //如果$data为空直接返回
-            return 0;
+            return false;
         }
         $add_user_res = UserModels::addUser($data); //执行新增
 
-        switch ($add_user_res) { //判断新增返回值
-            case 0:
-                return  '数据为空';
-                break;
-            case 1:
-                return  '邮箱已注册';
-                break;
-            case 2:
-                return  "昵称v已存在";
-                break;
-            case 3:
-                return  "新增管理员成功";
-                break;
-            default:
-                return  '数据写入失败,新增管理员失败';
+        // 添加成功 返回true
+        if($add_user_res===true){
+            return true;
         }
+
+        //返回错误消息或false 失败
+        $error_msg = $add_user_res;
+
+        return  $error_msg;
+
     }
 
 
@@ -79,9 +92,9 @@ class UserService
      * @param $data 查询数据
      * @return bool   true 是， false 否
      */
-    public static function isNickNameUserExist($data) {
+    public static function isNickNameOrEmailUserExist($data) {
 
-        $res = UserModels::isNickNameUserExist($data); //是否存在
+        $res = UserModels::isNickNameOrEmailUserExist($data); //是否存在
         
         return $res;
         

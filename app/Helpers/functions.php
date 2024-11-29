@@ -1,6 +1,21 @@
 <?php
 
 
+
+ /**
+     * Effect 二维数组转换为一维数组
+     * @param $array  数组
+     * @return array 一维数组
+     */
+
+function flattenArray($array) {
+    $results_array = [];
+    foreach ($array as $item) {
+        $results_array = array_merge($results_array, $item);
+    }
+    return $results_array;
+}   
+
 // 3个颜色数字，范围： 0-255
 function rgbRandomNumbers()
 {

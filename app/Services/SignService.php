@@ -38,8 +38,8 @@ class SignService
 
         // 删除sign字段
         unset($param['sign']);
-        // role字段不参与签名
-        unset($param['role']);
+        // // role字段不参与签名
+        // unset($param['role']);
 
         $timestamp = $param['timestamp'];
 
@@ -58,7 +58,7 @@ class SignService
 
      
         $data_str = implode('&', $key_tmp);
-        // echo  'data_str:'.$data_str;
+        // echo  '换为大写-data_str:'.$data_str;
 
         /* 2.data字符串转bs64 */
         // 使用 mb_convert_encoding 函数转换为 UTF-8
@@ -66,25 +66,25 @@ class SignService
         // 转base64
         $data_base64_str = base64_encode($data_str_to_utf8);
         // echo "</br>";
-        // echo  'data_base64_str:'.$data_base64_str;
+        // echo  'data字符串转bs64-data_base64_str:'.$data_base64_str;
 
         /* 3.base64转64卦 */
         $data_base64_to_trigrams = self::replaceMultiple($data_base64_str, self::$trigrams_collection);
         // echo "</br>";
-        // echo 'data_base64_to_trigrams:'.$data_base64_to_trigrams;
+        // echo 'base64转64卦-data_base64_to_trigrams:'.$data_base64_to_trigrams;
    
         /* 4.64卦转二进制  */
         $data_to_trigrams_binary = self::replaceMultiple($data_base64_to_trigrams, self::$trigrams_binary_collection);
         // echo "</br>";
-        // echo 'data_to_trigrams_binary:'.$data_to_trigrams_binary;
+        // echo '64卦转二进制-data_to_trigrams_binary:'.$data_to_trigrams_binary;
 
         /* 5.64卦二进制位反 1变0，0变1 */
 
         $replacement = array('1' => '0', '0' => '1');
 
         $data_trigrams_binary_to_bitwiseNot = strtr($data_to_trigrams_binary, $replacement);
-        //    echo "</br>";
-        //    echo 'data_trigrams_binary_to_bitwiseNot:'.$data_trigrams_binary_to_bitwiseNot;
+        // echo "</br>";
+        // echo '二进制位反-data_trigrams_binary_to_bitwiseNot:'.$data_trigrams_binary_to_bitwiseNot;
 
         $secret_key = self::createSecret($timestamp);
         //    使用empty()函数来检查变量是否为空值，这个函数会认为空字符串、0、"0"、null、false、undefined、空数组都是空的。

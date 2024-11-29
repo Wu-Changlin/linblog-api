@@ -9,11 +9,7 @@ use App\Redis\RedisBase;
 class ResetPasswordEmailAndVerificationCodeForRedisService
 {
 
-
     /* 验证码（登录页）、 邮箱验证码、 重置密码链接邮件*/
-
-
-
     // 存生成信息的key_name
     private static $save_data_key_name = [
         'validate_code' => 'validate_code_',
