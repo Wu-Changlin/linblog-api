@@ -50,11 +50,10 @@ class MenuService
     }
 
 
-    // 编辑菜单  返回  true 成功  ， 错误消息或false 失败
+    // 编辑菜单 返回  0：$data为空，true：成功编辑，false.失败
 
     public static function editMenu($data)
     {
-
 
         if (empty($data)) { //如果$data为空直接返回
             return false;

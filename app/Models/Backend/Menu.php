@@ -170,6 +170,19 @@ class Menu extends Model
             return false;
         }
 
+        //查询该id信息
+        // 获取数组的所有键
+        $select_keys_array = array_keys($allow_data);
+        $current_id_res = self::find($allow_data['menu_id'],$select_keys_array); 
+        $current_id_info=$current_id_res->toArray(); //集合转数组
+
+        //判断字段是否需要修改
+        $edit_info = array_diff_assoc($allow_data,$current_id_info); //1:返回[]空数组，说明2个数组相同 2:返回非空数组（数据相同字段已去除，剩下需要修改的字段数据），说明$data数据和数据库数据不一致，需要执行修改
+        if (!$edit_info) {//空数组说明没有修改字段值，返回1
+            return '已修改数据,请勿重复操作!';
+        }
+
+
 //使用update方法更新数据 ,update 方法需要一个表示应该更新的列的列和值对数组。 update 方法返回受影响的行数。
         $edit_res=self::where('menu_id',$allow_data['menu_id'])->update($allow_data);
 
