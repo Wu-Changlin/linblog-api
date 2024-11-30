@@ -1,10 +1,8 @@
 <?php
 
-// app/Services/UserService.php
+namespace App\Services\Backend;
 
-namespace App\Services;
-
-use App\Models\User as  UserModels;
+use App\Models\Backend\User as  UserModels;
 
 class UserService
 {

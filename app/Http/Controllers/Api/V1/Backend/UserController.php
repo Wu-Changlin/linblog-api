@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Backend;
 use App\Http\Controllers\Controller;
 
-use App\Services\UserService;
+use App\Services\Backend\UserService;
 use Illuminate\Http\Request;
 
 // 用户模块
@@ -38,16 +38,16 @@ class UserController extends Controller
     // 添加用户
     public function addUser(Request $request){
         // 获取全部提交数据
-        $data = $request->all();
+        $request_params_all_data = $request->all();
 
         // 拼接添加用户数据
-        $add_user_data['nick_name']=$data['nick_name'];
-        $add_user_data['email']=$data['email'];
-        $add_user_data['avatar']=$data['avatar'];
-        $add_user_data['password']=$data['password'];
-        $add_user_data['confirm_password']=$data['confirm_password'];
-        $add_user_data['role']=$data['role'];
-        $add_user_data['is_enable']=$data['is_enable'];
+        $add_user_data['nick_name']=$request_params_all_data['nick_name'];
+        $add_user_data['email']=$request_params_all_data['email'];
+        $add_user_data['avatar']=$request_params_all_data['avatar'];
+        $add_user_data['password']=$request_params_all_data['password'];
+        $add_user_data['confirm_password']=$request_params_all_data['confirm_password'];
+        $add_user_data['role']=$request_params_all_data['role'];
+        $add_user_data['is_enable']=$request_params_all_data['is_enable'];
 
         // 添加用户  返回  true 成功  ， 错误消息或false 失败
         $add_user_result= UserService::addUser($add_user_data);
