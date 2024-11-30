@@ -49,6 +49,7 @@ class MenuController extends Controller
     // "is_pulled": 0,
     // "action": "add",
 
+
         // 拼接添加菜单数据
        
        $add_or_edit_menu_data['menu_name']=$request_params_all_data['menu_name'];
@@ -58,8 +59,18 @@ class MenuController extends Controller
        $add_or_edit_menu_data['business_level']=$request_params_all_data['business_level'];
        $add_or_edit_menu_data['parent_id']=$request_params_all_data['parent_id'];
        $add_or_edit_menu_data['is_pulled']=$request_params_all_data['is_pulled'];
-       $add_or_edit_menu_data['menu_keywords']=$request_params_all_data['menu_keywords'];
+
+        // 当$add_or_edit_menu_data['menu_keywords'] 已定义，且 $add_or_edit_menu_data['menu_keywords']不为空时，进入 true 分支
+        if (isset($add_or_edit_menu_data['menu_keywords']) && !empty($add_or_edit_menu_data['menu_keywords'])) {
+            $add_or_edit_menu_data['menu_keywords']=$request_params_all_data['menu_keywords'];
+        }
+
+         // 当$add_or_edit_menu_data['menu_description'] 已定义，且 $add_or_edit_menu_data['menu_description']不为空时，进入 true 分支
+         if (isset($add_or_edit_menu_data['menu_description']) && !empty($add_or_edit_menu_data['menu_description'])) {
        $add_or_edit_menu_data['menu_description']=$request_params_all_data['menu_description'];
+           
+        }
+       
 
 
     /* 根目录路径  删除前缀斜杠 开始*/
@@ -85,16 +96,17 @@ class MenuController extends Controller
             $add_or_edit_menu_result = MenuService::editMenu($add_or_edit_menu_data); 
         }
 
+        
 
 
         // 成功情景
         if($add_or_edit_menu_result===true){
-            sendMSG(200, $add_or_edit_menu_result,'添加'.$modular_name.'成功！');
+            sendMSG(200, $add_or_edit_menu_result,$request_params_all_data['action'].$modular_name.'成功！');
         }
 
         // 空数据情景
         if(empty($add_or_edit_menu_result)){
-            sendErrorMSG(403,'添加'.$modular_name.'数据异常！');
+            sendErrorMSG(403,$request_params_all_data['action'].$modular_name.'数据异常！');
         }
         // 数据没有通过校验情景
         if(is_string($add_or_edit_menu_result) && $add_or_edit_menu_result){
