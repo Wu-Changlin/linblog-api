@@ -111,8 +111,8 @@ class Menu extends Model
          //优化mysql查询,如果只是判断数据是否存在,用exists查询并只返回id是最快的？
          $is_repeat_menu_name_res = self::where($where)->select('menu_id')->exists();
  
-         if ($is_repeat_menu_name_res) { //如果有数据说明menu_name已注册
-             return 'menu_name已注册';
+         if ($is_repeat_menu_name_res) { //如果有数据说明menu_name已存在
+             return 'menu_name已存在';
          }
 
     
@@ -125,8 +125,8 @@ class Menu extends Model
         //优化mysql查询,如果只是判断数据是否存在,用exists查询并只返回id是最快的？
         $is_repeat_menu_title_res = self::where($where)->select('menu_id')->exists();
 
-        if ($is_repeat_menu_title_res) { //如果有数据说明menu_title已注册
-            return 'menu_title已注册';
+        if ($is_repeat_menu_title_res) { //如果有数据说明menu_title已存在
+            return 'menu_title已存在';
         }
 
 

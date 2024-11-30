@@ -58,7 +58,18 @@ class MenuController extends Controller
        $add_or_edit_menu_data['business_level']=$request_params_all_data['business_level'];
        $add_or_edit_menu_data['parent_id']=$request_params_all_data['parent_id'];
        $add_or_edit_menu_data['is_pulled']=$request_params_all_data['is_pulled'];
+       $add_or_edit_menu_data['menu_keywords']=$request_params_all_data['menu_keywords'];
+       $add_or_edit_menu_data['menu_description']=$request_params_all_data['menu_description'];
 
+
+    /* 根目录路径  删除前缀斜杠 开始*/
+    //    使用substr_count()函数来计算字符串中特定子字符串出现的次数。对于寻找斜杠/
+    $count = substr_count($add_or_edit_menu_data['menu_path'], "/");
+
+    if($count===1){
+        $add_or_edit_menu_data['menu_path']= substr($add_or_edit_menu_data['menu_path'], 1); // 从第二个字符开始切割到末尾
+    }
+    /* 根目录路径  删除前缀斜杠 结束*/
 
         // 添加  返回  true 成功  ， 错误消息或false 失败
 

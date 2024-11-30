@@ -93,7 +93,7 @@ _：一个下划线。
             'menu_name' => 'required|regex:/^[a-z]+([_][a-z]+)?$/',
             'menu_title' => 'required:[\u4e00-\u9fa5]',
             'menu_path' => 'required|regex:/^\/[a-z]+(\/[a-z]+_[a-z]+)?$/',
-            'icon' => 'required|regex:/^[a-z]+$/',
+            'icon' => 'required|regex:/^[a-z]+(_[a-z]+)?$/',
             'business_level' => 'required|regex:/^[0-9]+$/',
             'parent_id' => 'required|regex:/^[0-9]+$/',
             'is_pulled' => 'required|regex:/^[0-9]+$/',
