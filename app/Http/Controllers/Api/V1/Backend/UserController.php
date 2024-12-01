@@ -19,6 +19,9 @@ class UserController extends Controller
     }
 
 
+    // `is_enable` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否启用	0：默认， 1： 是 	 ，2：否',
+
+
     public function index(Request $request)
     {
         

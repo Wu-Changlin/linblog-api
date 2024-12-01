@@ -7,23 +7,71 @@ use App\Models\Backend\Menu as  MenuModels;
 class MenuService
 {
 
+
+
+    //获取list页面数据，表格数据、页数相关数据
+    public static function  getMenuListPageData($data)
+    {
+
+        
+    // paginate() 分页响应通常包含data（数据）和meta（元数据）键，其中meta键包含current_page、last_page、per_page、total等信息，
+    // 用于表示当前页、最后一页、每页数量和总数据量。此外，links键包含分页导航链接，如first、prev、next、last。
+
+
+        // 自定义分页数量为10，当前页为2，查询字段为'name'和'email'，查询条件为'active'为1
+        $get_menu_list_page_data_res = MenuModels::where('is_pulled', 0)
+            ->select('menu_id', 'is_pulled')
+            ->paginate(1, ['*'], 'page', 1);
+
+
+        
+
+        return $get_menu_list_page_data_res;
+    }
+
+
+
+
     // 获取当前编辑菜单信息  返回  true 菜单信息   ， false 失败
-    public static function getCurrentEditMenuInfo($data){
+    public static function getCurrentMenuInfo($data)
+    {
 
         if (empty($data)) { //如果$data为空直接返回
             return false;
         }
-        $get_current_edit_menu_info_res = MenuModels::getCurrentEditMenuInfo($data); //执行新增
-       
+
+        $get_current_edit_menu_info_res = MenuModels::getCurrentMenuInfo($data); //执行新增
+
         // 获取成功 返回菜单信息 
-        if($get_current_edit_menu_info_res){
-           
-         return $get_current_edit_menu_info_res;
+        if ($get_current_edit_menu_info_res) {
+
+            return $get_current_edit_menu_info_res;
         }
 
-        //获取失败，返回false 失败
+        //空数据，返回false
         return  false;
     }
+
+    // 获取没有下架的数据
+    public static function getIsNoPulledData($data)
+    {
+
+        if (empty($data)) { //如果$data为空直接返回 0
+            return 0;
+        }
+        // 返回 条件为空返回0； 有数据返回查询结果 ； 空数据，返回[]。
+        $get_is_no_pulled_data_res = MenuModels::getDataByCondition($data); //执行新增
+
+        // 获取成功 返回菜单信息 
+        if ($get_is_no_pulled_data_res) {
+
+            return $get_is_no_pulled_data_res;
+        }
+
+        //空数据，返回false 
+        return  [];
+    }
+
 
 
     // 添加菜单  返回  true 成功  ， 错误消息或false 失败
@@ -33,12 +81,12 @@ class MenuService
         if (empty($data)) { //如果$data为空直接返回
             return false;
         }
- 
-            $add_menu_res = MenuModels::addMenu($data); 
+
+        $add_menu_res = MenuModels::addMenu($data);
 
 
         // 添加成功 返回true
-        if($add_menu_res===true){
+        if ($add_menu_res === true) {
             return true;
         }
 
@@ -46,7 +94,6 @@ class MenuService
         $error_msg = $add_menu_res;
 
         return  $error_msg;
-
     }
 
 
@@ -59,11 +106,11 @@ class MenuService
             return false;
         }
 
-        $edit_menu_res = MenuModels::editMenu($data); 
+        $edit_menu_res = MenuModels::editMenu($data);
 
 
-         // 添加成功 返回true
-         if($edit_menu_res===true){
+        // 添加成功 返回true
+        if ($edit_menu_res === true) {
             return true;
         }
 
@@ -71,11 +118,10 @@ class MenuService
         $error_msg = $edit_menu_res;
 
         return  $error_msg;
-
     }
 
 
-    
+
 
     // 其他用户相关的服务方法
 }
