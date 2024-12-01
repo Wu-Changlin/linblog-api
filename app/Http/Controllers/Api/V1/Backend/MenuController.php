@@ -31,6 +31,34 @@ class MenuController extends Controller
         // "menu_data"
     }
 
+// 获取当前编辑菜单信息  返回  true 菜单信息   ， false 失败
+    public function  getCurrentEditMenuInfo(Request $request){
+       
+        // 获取请求参数的id
+        $request_params_data_id = $request->input('id');
+
+        if (isset($request_params_data_id) && !empty($request_params_data_id)) {
+            $get_current_edit_menu_info_result = MenuService::getCurrentEditMenuInfo(['menu_id'=>$request_params_data_id]); 
+        
+            // 成功情景
+            if($get_current_edit_menu_info_result){
+                sendMSG(200, $get_current_edit_menu_info_result ,'成功！');
+            }
+
+            // 空数据情景
+            if(empty($get_current_edit_menu_info_result)){
+                sendErrorMSG(403,'数据异常！');
+            }
+            // 数据没有通过校验情景
+            if(is_string($get_current_edit_menu_info_result) && $get_current_edit_menu_info_result){
+                sendErrorMSG(403,$get_current_edit_menu_info_result);
+            }
+        }
+
+        
+        sendErrorMSG(403,'数据异常！');
+        
+    }
 
     // 添加或编辑菜单
     public function addOrEditMenu(AddOrEditMenuRequest $request){

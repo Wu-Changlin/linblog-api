@@ -7,22 +7,22 @@ use App\Models\Backend\Menu as  MenuModels;
 class MenuService
 {
 
-    // 获取当前用户信息  返回  true 用户信息  ， false 失败
-    public static function getCurrentUserInfo($data){
+    // 获取当前编辑菜单信息  返回  true 菜单信息   ， false 失败
+    public static function getCurrentEditMenuInfo($data){
 
-        // if (empty($data)) { //如果$data为空直接返回
-        //     return false;
-        // }
-        // $get_current_user_info_res = UserModels::getCurrentUserInfo($data); //执行新增
+        if (empty($data)) { //如果$data为空直接返回
+            return false;
+        }
+        $get_current_edit_menu_info_res = MenuModels::getCurrentEditMenuInfo($data); //执行新增
        
-        // // 添加成功 返回true
-        // if($get_current_user_info_res){
+        // 获取成功 返回菜单信息 
+        if($get_current_edit_menu_info_res){
            
-        //  return $get_current_user_info_res;
-        // }
+         return $get_current_edit_menu_info_res;
+        }
 
-        // //返回false 失败
-        // return  false;
+        //获取失败，返回false 失败
+        return  false;
     }
 
 

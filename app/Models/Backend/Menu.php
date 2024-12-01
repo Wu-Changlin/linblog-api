@@ -25,7 +25,52 @@ class Menu extends Model
     // get Data By Condition    按条件获取数据
 
 
+
+        // 获取当前编辑菜单信息  返回  true 菜单信息   ， false 失败
+        public static function getCurrentEditMenuInfo($data){
+
+            if (empty($data)) { //如果$data为空直接返回
+                return 0;
+            }
+            $allow_data = $data;
+        
+            // 初始化查询条件  多条件查询？
+            $where_data = [];
     
+             // 当$allow_data['menu_id'] 已定义，且 $allow_data['menu_id']不为空时，进入 true 分支
+             if (isset($allow_data['menu_id']) && !empty($allow_data['menu_id'])) {
+                $menu_id_where = ['menu_id', '=',  $allow_data['menu_id']];
+    
+                // 将一个数组嵌套到另一个数组
+                $where_data = [$menu_id_where];
+            }
+    
+            
+            $get_current_edit_menu_info_res = self::where($where_data)->select('menu_id','business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords','menu_name','menu_path', 'menu_title');
+           
+        
+          
+        
+            if ($get_current_edit_menu_info_res) {
+                // 使用 get 方法来获取结果
+                $results = $get_current_edit_menu_info_res->get();
+               
+                // 获取多维数组结果 
+                $multidimensional_array=$results->toArray();
+               
+                // 多维数组扁平为一维
+                $results_array=flattenArray($multidimensional_array);
+              
+          
+
+                return $results_array;
+            }
+    
+    
+            return false;
+        }
+    
+
     
     
 
