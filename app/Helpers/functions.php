@@ -1,20 +1,68 @@
 <?php
 
 
+// // json_encode中文unicode编码和斜杠转义 解决方法
+//     // 由于 JSON_UNESCAPED_UNICODE 和 JSON_UNESCAPED_SLASHES 都是常量；
+//     // JSON_UNESCAPED_UNICODE = 256 //中文不转为unicode
+//     // JSON_UNESCAPED_SLASHES = 64  //不转义反斜杠
+//     // JSON_UNESCAPED_UNICODE + JSON_UNESCAPED_SLASHES = 320
+//     die(json_encode($arr, 320));
 
- /**
-     * Effect 二维数组转换为一维数组
-     * @param $array  数组
-     * @return array 一维数组
-     */
+/**
+ * 转为查询条件数组
+ * PHP数组，然后根据需要构造查询条件数组。
+ * @param $array  数组
+ * @return array 一维数组
+ */
 
-function flattenArray($array) {
+function  toConditionsArray($data)
+{
+    $conditions_array = [];
+    foreach ($data as $key => $value) {
+        $conditions_array[] = [$key, '=', $value];
+    }
+
+    return $conditions_array;
+}
+
+/**
+ * 转为查询条件数组
+ * json_decode函数将JSON字符串转换为PHP数组，然后根据需要构造查询条件数组。
+ * @param $array  数组
+ * @return array 一维数组
+ */
+
+function  jsonStringToConditionsArray($data)
+{
+
+    $json_string = $data;
+    // 如果需要确保输出为关联数组，可以使用json_decode的第二个参数
+    $array = json_decode($json_string, true);
+
+    $conditions_array = [];
+    foreach ($array as $key => $value) {
+        $conditions_array[] = [$key, '=', $value];
+    }
+
+    return $conditions_array;
+}
+
+
+
+/**
+ * Effect 二维数组转换为一维数组
+ * @param $array  数组
+ * @return array 一维数组
+ */
+
+function flattenArray($array)
+{
     $results_array = [];
     foreach ($array as $item) {
         $results_array = array_merge($results_array, $item);
     }
     return $results_array;
-}   
+}
 
 // 3个颜色数字，范围： 0-255
 function rgbRandomNumbers()
@@ -38,7 +86,8 @@ function rgbRandomNumbers()
 // $str = 'api/frontend/frontend/getCurrentActivePageData';
 // $position = 1; // 输出第1个'/'之后的内容，即'frontend'
 // echo outputByPosition($str, $position); // 输出: frontend
-function outputByPosition($str, $position) {
+function outputByPosition($str, $position)
+{
     $parts = explode('/', $str);
     if (isset($parts[$position])) {
         return $parts[$position];
@@ -81,18 +130,19 @@ function getVisitorIP()
     return $real_Ip;
 }
 
-      // 将字符串转换为UTF-8编码
-function strToUtf8Bytes($str) {
+// 将字符串转换为UTF-8编码
+function strToUtf8Bytes($str)
+{
     // 将字符串转换为UTF-8编码
     $utf8Str = mb_convert_encoding($str, 'UTF-8', 'auto');
     // 初始化字节数组
     $bytes = [];
- 
+
     // 遍历UTF-8编码的字符串，将每个字符转换为其对应的字节值
     for ($i = 0; $i < mb_strlen($utf8Str, 'UTF-8'); $i++) {
         $bytes[] = ord(mb_substr($utf8Str, $i, 1, 'UTF-8'));
     }
- 
+
     return $bytes;
 }
 
@@ -104,7 +154,7 @@ function strToUtf8Bytes($str) {
  * @param array $data  响应数据
  *  @param $msg        自定义提示信息
  */
-function sendMSG($code = 0, $data = [],$msg)
+function sendMSG($code = 0, $data = [], $msg)
 {
     header('content-type:application/json;charset=utf8');
     // 解决Ajax跨域
@@ -123,7 +173,7 @@ function sendMSG($code = 0, $data = [],$msg)
     // JSON_UNESCAPED_UNICODE = 256 //中文不转为unicode
     // JSON_UNESCAPED_SLASHES = 64  //不转义反斜杠
     // JSON_UNESCAPED_UNICODE + JSON_UNESCAPED_SLASHES = 320
-die(json_encode($arr, 320));
+    die(json_encode($arr, 320));
 }
 
 
@@ -149,7 +199,7 @@ die(json_encode($arr, 320));
 /**
  * 失败返回
  */
-function sendErrorMSG($code,$message = '')
+function sendErrorMSG($code, $message = '')
 {
     // 出现404错误时,把相关信息记录到日志中,以方便发现错误
     // if($code == 404){
@@ -157,32 +207,32 @@ function sendErrorMSG($code,$message = '')
     //     $path = $GLOBALS['OPTIONS']['seaslog']."404/";
     //     $deaslog->writeData("404: {$message}",$path,'ERROR');
     // }
-    
+
     header('content-type:application/json;charset=utf8');
     // 解决Ajax跨域
     header('Access-Control-Allow-Origin: *');
     header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept');
 
-    
+
 
     // 如果没有自定义message，则使用code查询语言包中对应的错误提示
     if (empty($message)) {
-        $code_str='cn.'.$code;
-        
-         //trans( $code_str) 载入语言包
-        $message =  trans( $code_str)?? $code;
+        $code_str = 'cn.' . $code;
 
-        $message==$code_str?$message='未知错误':'';
+        //trans( $code_str) 载入语言包
+        $message =  trans($code_str) ?? $code;
+
+        $message == $code_str ? $message = '未知错误' : '';
     }
 
     // 使用preg_replace进行替换，非数字替换为空。
     $code = preg_replace('/[^\d]/', '', $code); // 输出: 403
 
-    header('HTTP/1.0 '. $code);
-        // return response('Unauthenticated.', 401);
+    header('HTTP/1.0 ' . $code);
+    // return response('Unauthenticated.', 401);
 
     // 使用intval把字符串值转数字
-    $code=intval($code);
+    $code = intval($code);
 
     $arr = array(
         'status' => false,
@@ -190,26 +240,26 @@ function sendErrorMSG($code,$message = '')
         'data' => [],
         'message' => $message,
     );
-     // json_encode中文unicode编码和斜杠转义 解决方法
+    // json_encode中文unicode编码和斜杠转义 解决方法
     // 由于 JSON_UNESCAPED_UNICODE 和 JSON_UNESCAPED_SLASHES 都是常量；
     // JSON_UNESCAPED_UNICODE = 256 //中文不转为unicode
     // JSON_UNESCAPED_SLASHES = 64  //不转义反斜杠
     // JSON_UNESCAPED_UNICODE + JSON_UNESCAPED_SLASHES = 320
     die(json_encode($arr, 320));
-
 }
 
 // 生成一个包含大小写字母和数字的任意位随机数，默认6位
 // 接受一个参数$length，表示随机数的长度。函数内部定义了一个包含大小写字母和数字的字符串，
 // 然后通过循环随机选择字符来构建随机数。最后返回这个6位的随机数字符串。
-function generateRandomNumber($length = 6) {
+function generateRandomNumber($length = 6)
+{
     $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
     $charactersLength = strlen($characters);
     $randomString = '';
- 
+
     for ($i = 0; $i < $length; $i++) {
         $randomString .= $characters[rand(0, $charactersLength - 1)];
     }
- 
+
     return $randomString;
 }

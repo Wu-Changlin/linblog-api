@@ -138,11 +138,24 @@ class LoginController extends Controller
             'password' => $request_params_all_data['password']
         ];
 
-        // $verify_account_result=UserService::verifyAccount($verify_account_data);
+      //验证账号状态： 通过 返回true，没有通过返回错误消息或false失败
+   
+        $verify_account_result=UserService::verifyAccount($verify_account_data);
 
-        // if (empty($verify_account_result)) {
-        //     sendErrorMSG(403, '验证账号失败！');
-        // }
+         // 失败情景
+         if($verify_account_result===false){
+            sendMSG(200, [], '验证账号失败！');
+        }
+
+        // 空数据情景
+        if ($verify_account_result===0) {
+            sendErrorMSG(403,  '数据异常！');
+        }
+        // 数据没有通过校验情景
+        if (is_string($verify_account_result) && $verify_account_result) {
+            sendErrorMSG(403, $verify_account_result);
+        }
+
 
         // 2.验证用户是否登录
         $is_logged_in_data = ['email' => $request_params_all_data['email']];
@@ -303,11 +316,13 @@ class LoginController extends Controller
         $verify_account_data = [
             'nick_name' => $nick_name,
         ];
+        //验证账号状态： 通过 返回true，没有通过返回错误消息或false失败
         // $verify_account_result=UserService::verifyAccount($verify_account_data);
 
         // if (empty($verify_account_result)) {
         //     sendErrorMSG(403, '验证账号失败！');
         // }
+
 
         // 4.验证用户是否已登录
         $is_logged_in_data = ['nick_name' => $nick_name];
@@ -349,9 +364,12 @@ class LoginController extends Controller
             'iss' => 'linBlog',  // 签发者
             'aud' => $nick_name, // 接收者
             'sub' =>  $nick_name, // 用户标识
-            'role' => 'user', // 用户角色
+            'role' => 2, // 用户角色
             'jti' => 'access_token' . bin2hex(random_bytes(10)) // 唯一令牌标识
         ];
+
+        // `role` '角色；0：默认，1：普通用户，2：管理员',
+
 
         //    组装refresh_token_payload
         $refresh_token_payload = [
@@ -359,7 +377,7 @@ class LoginController extends Controller
             'iss' => 'linBlog',  // 签发者
             'aud' => $nick_name, // 接收者
             'sub' =>  $nick_name, // 用户标识
-            'role' => 'user', // 用户角色
+            'role' => 2, // 用户角色
             'jti' => 'refresh_token' . bin2hex(random_bytes(10)) // 唯一令牌标识
 
         ];

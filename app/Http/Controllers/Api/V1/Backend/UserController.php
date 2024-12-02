@@ -52,17 +52,22 @@ class UserController extends Controller
         $add_user_data['role']=$request_params_all_data['role'];
         $add_user_data['is_enable']=$request_params_all_data['is_enable'];
 
-        // 添加用户  返回  true 成功  ， 错误消息或false 失败
+        // 添加用户  返回 0 空数据  true 成功  ， 错误消息或false 失败
         $add_user_result= UserService::addUser($add_user_data);
 
         // 成功情景
         if($add_user_result===true){
-            sendMSG(200, $add_user_result,'添加用户成功！');
+            sendMSG(200, $add_user_result,'添加成功！');
         }
 
-        // 空用户数据情景
-        if(empty($add_user_result)){
-            sendErrorMSG(403,'添加用户数据异常！');
+         // 失败情景
+         if($add_user_result===false){
+            sendMSG(200, [],'添加失败！');
+        }
+
+        // 提交空用户数据情景
+        if($add_user_result===0){
+            sendErrorMSG(403,'提交空数据！');
         }
         // 用户数据没有通过校验情景
         if(is_string($add_user_result) && $add_user_result){

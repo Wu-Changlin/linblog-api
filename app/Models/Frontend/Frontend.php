@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\BaseModel;
 
 
-class User extends BaseModel
+class Frontend extends BaseModel
 {
 
     protected $primaryKey = 'user_id'; //创建的表字段中主键ID的名称不为id，则需要通过 $primaryKey 来指定一下设定主键id
@@ -44,7 +44,7 @@ class User extends BaseModel
         if (isset($allow_data['nick_name']) && !empty($allow_data['nick_name'])) {
             $nick_name_where = ['nick_name', '=',  $allow_data['nick_name']];
             // 将一个数组嵌套到另一个数组
-            $where_data[] = $nick_name_where;
+            $where_data = [$nick_name_where];
         }
 
         // 当$allow_data['email'] 已定义，且 $allow_data['email']不为空时，进入 true 分支
@@ -52,24 +52,30 @@ class User extends BaseModel
             $email_where = ['email', '=',  $allow_data['email']];
 
             // 将一个数组嵌套到另一个数组
-            $where_data[] =$email_where;
+            $where_data = [$email_where];
         }
 
 
         // 当$allow_data['user_id'] 已定义，且 $allow_data['user_id']不为空时，进入 true 分支
         if (isset($allow_data['user_id']) && !empty($allow_data['user_id'])) {
-            $user_id_where = ['user_id', '=',  $allow_data['user_id']];
+            $email_where = ['user_id', '=',  $allow_data['user_id']];
 
             // 将一个数组嵌套到另一个数组
-            $where_data[]= $user_id_where;
+            $where_data = [$email_where];
         }
        
-        $user_res = self::where($where_data)->select('user_id','nick_name','email','email_verification_code','role','account_status','login_ip','is_enable','is_logged_in','last_login_time')->first();
+        $user_res = self::where($where_data)->select('user_id','nick_name','email','email_verification_code','role','account_status','login_ip','is_enable','is_logged_in','last_login_time');
         
+      
         if ($user_res) {
+            // 使用 get 方法来获取结果
+            $results = $user_res->get();
            
-            // 获取集合转数组结果 
-            $results_array=$user_res->toArray();
+            // 获取多维数组结果 
+            $multidimensional_array=$results->toArray();
+           
+            // 多维数组扁平为一维
+            $results_array=flattenArray($multidimensional_array);
           
             return $results_array;
         }
@@ -100,7 +106,7 @@ class User extends BaseModel
         if (isset($allow_data['nick_name']) && !empty($allow_data['nick_name'])) {
             $nick_name_where = ['nick_name', '=',  $allow_data['nick_name']];
             // 将一个数组嵌套到另一个数组
-            $where_data []= $nick_name_where;
+            $where_data = [$nick_name_where];
         }
      
 
@@ -109,7 +115,7 @@ class User extends BaseModel
             $email_where = ['email', '=',  $allow_data['email']];
 
             // 将一个数组嵌套到另一个数组
-            $where_data[] = $email_where;
+            $where_data = [$email_where];
         }
 
 
@@ -156,7 +162,7 @@ class User extends BaseModel
         if (isset($allow_data['nick_name']) && !empty($allow_data['nick_name'])) {
             $nick_name_where = ['nick_name', '=',  $allow_data['nick_name']];
             // 将一个数组嵌套到另一个数组
-            $where_data []= $nick_name_where;
+            $where_data = [$nick_name_where];
         }
 
         // 当$allow_data['email'] 已定义，且 $allow_data['email']不为空时，进入 true 分支
@@ -164,12 +170,12 @@ class User extends BaseModel
             $email_where = ['email', '=',  $allow_data['email']];
 
             // 将一个数组嵌套到另一个数组
-            $where_data[] = $email_where;
+            $where_data = [$email_where];
         }
 
 
-        $is_logged_in_res = self::where($where_data)->select('is_logged_in')->first();
-        if ($is_logged_in_res && $is_logged_in_res->is_logged_in === 1) {
+        $is_logged_in_res = self::where($where_data)->select('is_logged_in');
+        if ($is_logged_in_res && $is_logged_in_res === 1) {
             return true;
         }
 
@@ -202,58 +208,31 @@ class User extends BaseModel
             $email_where = ['email', '=',  $allow_data['email']];
 
             // 将一个数组嵌套到另一个数组
-            $where_data[] = $email_where;
+            $where_data = [$email_where];
         }
 
         // 当$allow_data['password'] 已定义，且 $allow_data['password']不为空时，进入 true 分支
         if (isset($allow_data['password']) && !empty($allow_data['password'])) {
-            $password_where = ['password', '=',  $allow_data['password']];
+            $email_where = ['password', '=',  $allow_data['password']];
 
             // 将一个数组嵌套到另一个数组
-            $where_data[] = $password_where;
+            $where_data = [$email_where];
         }
 
-        // 登录使用校验邮箱和密码
-        if (isset($allow_data['email']) && !empty($allow_data['email'])&& isset($allow_data['password']) && !empty($allow_data['password'])) {
-            $login_verify_account_where[] = ['email', '=',  $allow_data['email']];
-          
-            // ->first查到数据返回Eloquent 对象，查不到返回null，所以不能直接->toArray()
-            $login_verify_account_res = self::where($login_verify_account_where)->select('password')->first();
-            
-            if(empty($login_verify_account_res)){
-                return false;
-            }
-
-            if($allow_data['password'] != $login_verify_account_res->password){
-                return '密码错误！';
-            }
-
-            
-       
-        }
-
-        
-       
         // 当$allow_data['nick_name'] 已定义，且 $allow_data['nick_name']不为空时，进入 true 分支
         if (isset($allow_data['nick_name']) && !empty($allow_data['nick_name'])) {
             $nick_name_where = ['nick_name', '=',  $allow_data['nick_name']];
             // 将一个数组嵌套到另一个数组
-            $where_data []= $nick_name_where;
+            $where_data = [$nick_name_where];
         }
 
 
-     
+
 
         // 查询字段account_status,is_enable
-        $res = self::where($where_data)->select('account_status','is_enable')->first();
-
-       
-        // `account_status` '账号状态 0：默认，1：正常，2：获取过多验证码锁定，3：多次输入错误密码锁定，4：销号',
-
-        // `is_enable` 是否启用	0：默认， 1： 是 ，2：否',
-
+        $res = self::where($where_data)->select('account_status,is_enable');
         // 如果账号状态和启用状态的值都是是1，那么返true
-        if ($res->account_status === 1 && $res->is_enable === 1) {
+        if ($res['account_status'] === 1 && $res['is_enable'] === 1) {
             return true;
         }
 
@@ -282,7 +261,7 @@ class User extends BaseModel
             $email_where = ['email', '=',  $allow_data['email']];
 
             // 将一个数组嵌套到另一个数组
-            $where_data[] = $email_where;
+            $where_data = [$email_where];
         }
 
 
@@ -290,11 +269,11 @@ class User extends BaseModel
         if (isset($allow_data['nick_name']) && !empty($allow_data['nick_name'])) {
             $nick_name_where = ['nick_name', '=',  $allow_data['nick_name']];
             // 将一个数组嵌套到另一个数组
-            $where_data[] = $nick_name_where;
+            $where_data = [$nick_name_where];
         }
 
 
-        $is_nick_name_res = self::where($where_data)->select('user_id')->first();
+        $is_nick_name_res = self::where($where_data)->select('user_id');
         if ($is_nick_name_res) {
             return true;
         }

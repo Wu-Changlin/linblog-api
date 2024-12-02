@@ -3,9 +3,10 @@
 namespace App\Models\Backend;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 
-class Menu extends Model
+class Menu extends BaseModel
 {
 
     protected $primaryKey = 'menu_id'; //创建的表字段中主键ID的名称不为id，则需要通过 $primaryKey 来指定一下设定主键id
@@ -22,10 +23,10 @@ class Menu extends Model
 
     // get Ip is   exist black list table  获取Ip存在黑名单表
 
-    // 按条件获取数据 返回 条件为空返回0 有数据返回查询结果  空数据，返回[]
-    public static function  getDataByCondition($data){
+    // 按条件获取页码数据 返回 条件为空返回0； 有数据返回查询结果 ； 空数据，返回[]。
+    public static function  getPageDataByCondition($data,$current_page,$current_page_limit){
         
-        if (empty($data)) { //如果$data为空直接返回
+        if (empty($current_page) || empty($current_page_limit) ) { //如果$current_page 或$current_page_limit为空直接返回0
             return 0;
         }
         $allow_data = $data;
@@ -33,45 +34,50 @@ class Menu extends Model
         // 初始化查询条件  多条件查询？
         $where_data = [];
 
-        //  // 当$allow_data['menu_id'] 已定义，且 $allow_data['menu_id']不为空时，进入 true 分支
-        //  if (isset($allow_data['menu_id']) && !empty($allow_data['menu_id'])) {
-        //     $menu_id_where = ['menu_id', '=',  $allow_data['menu_id']];
+        // 条件数组 示例：[["id",'=' ,1],['name",'=','menu']]
+        $where_data=$allow_data;
 
-        //     // 将一个数组嵌套到另一个数组
-        //     $where_data = [$menu_id_where];
-        // }
-
-
-         // 当$allow_data['is_pulled'] 已定义，且 $allow_data['is_pulled']不为空时，进入 true 分支
-         if (isset($allow_data['is_pulled']) && !empty($allow_data['is_pulled'])) {
-            $is_pulled_where = ['is_pulled', '=',  $allow_data['is_pulled']];
-
-            // 将一个数组嵌套到另一个数组
-            $where_data = [$is_pulled_where];
-        }
-
-   
-        
-        $get_data_by_condition = self::where($where_data)->select('menu_id','business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords','menu_name','menu_path', 'menu_title');
        
-    
-        if ($get_data_by_condition) {
-            // 使用 get 方法来获取结果
-            $results = $get_data_by_condition->get();
-           
-            // 获取多维数组结果 
-            $multidimensional_array=$results->toArray();
-           
-            // 多维数组扁平为一维
-            $results_array=flattenArray($multidimensional_array);
-          
-      
+          // paginate() 分页响应通常包含data（数据）和meta（元数据）键，其中meta键包含current_page、last_page、per_page、total等信息，
+    // 用于表示当前页、最后一页、每页数量和总数据量。此外，links键包含分页导航链接，如first、prev、next、last。
+        // 自定义分页数量为$current_page_limit，当前页为$current_page，查询字段为xxx，查询条件为$where_data
+        /*
+        paginate()参数有四个,第一个是limit 每页的数据条数,第二个是可以不用去操作直接写：['*'],
+        第三个是页面的名称一般都是：‘page’,第四个是当前页：$cur_page。
+        */
+  
 
+        // 有查询条件
+            if(isset($where_data) && !empty($where_data)){
+                  //返回 有值paginate对象有查询结果，没有值paginate对象没有有查询结果
+                $get_data_by_condition = self::where($where_data)
+                ->select('menu_id','business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords','menu_name','menu_path', 'menu_title')
+                ->paginate($current_page_limit, ['*'], 'page', $current_page);
+    
+            }
+// 没有查询条件
+            if(empty($where_data)){
+                  //返回 有值paginate对象有查询结果，没有值paginate对象没有有查询结果
+                $get_data_by_condition = self::select('menu_id','business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords','menu_name','menu_path', 'menu_title')
+                ->paginate($current_page_limit, ['*'], 'page', $current_page);
+            }
+
+            // 获取集合转数组结果 
+            $results_array=$get_data_by_condition->toArray();   
+
+            // echo "</br>";
+            // echo '值：'. !$get_data_by_condition->isEmpty();
+            // echo "</br>";
+
+            // dd($results_array);
+        // get_data_by_condition有值，data键存在且有值
+        if ($results_array && isset($results_array['data']) && !empty($results_array['data'])) {
+        
             return $results_array;
         }
 
-//空数据，返回[]
-        return [];
+//空数据，返回false
+        return false;
 
     }  
 
@@ -87,33 +93,27 @@ class Menu extends Model
         
             // 初始化查询条件  多条件查询？
             $where_data = [];
-    
+
              // 当$allow_data['menu_id'] 已定义，且 $allow_data['menu_id']不为空时，进入 true 分支
              if (isset($allow_data['menu_id']) && !empty($allow_data['menu_id'])) {
                 $menu_id_where = ['menu_id', '=',  $allow_data['menu_id']];
     
                 // 将一个数组嵌套到另一个数组
-                $where_data = [$menu_id_where];
+                $where_data[] = $menu_id_where;
             }
     
-            
-            $get_current_edit_menu_info_res = self::where($where_data)->select('menu_id','business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords','menu_name','menu_path', 'menu_title');
-           
-        
-          
-        
-            if ($get_current_edit_menu_info_res) {
-                // 使用 get 方法来获取结果
-                $results = $get_current_edit_menu_info_res->get();
-               
-                // 获取多维数组结果 
-                $multidimensional_array=$results->toArray();
-               
-                // 多维数组扁平为一维
-                $results_array=flattenArray($multidimensional_array);
-              
-          
 
+        // ->get查到数据返回Eloquent 集合，查不到返回Eloquent 空集合
+            $get_current_edit_menu_info_condition = self::where($where_data)->select('menu_id','business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords','menu_name','menu_path', 'menu_title')->first();
+    
+         
+           // 有值继续执行
+        if ($get_current_edit_menu_info_condition) {
+                
+
+             // 获取集合转数组结果 
+ 
+                $results_array=$get_current_edit_menu_info_condition->toArray();
                 return $results_array;
             }
     
@@ -145,7 +145,7 @@ class Menu extends Model
             $menu_id_where = ['menu_id', '=',  $allow_data['menu_id']];
 
             // 将一个数组嵌套到另一个数组
-            $where_data = [$menu_id_where];
+            $where_data[] = $menu_id_where;
         }
 
         
@@ -155,7 +155,7 @@ class Menu extends Model
             $menu_name_where = ['menu_name', '=',  $allow_data['menu_name']];
 
             // 将一个数组嵌套到另一个数组
-            $where_data = [$menu_name_where];
+            $where_data[] = $menu_name_where;
         }
 
 
@@ -163,7 +163,7 @@ class Menu extends Model
         if (isset($allow_data['menu_title']) && !empty($allow_data['menu_title'])) {
             $menu_title_where = ['menu_title', '=',  $allow_data['menu_title']];
             // 将一个数组嵌套到另一个数组
-            $where_data = [$menu_title_where];
+            $where_data[] = $menu_title_where;
         }
 
 
@@ -171,11 +171,11 @@ class Menu extends Model
         if (isset($allow_data['menu_path']) && !empty($allow_data['menu_path'])) {
             $menu_path_where = ['menu_path', '=',  $allow_data['menu_path']];
             // 将一个数组嵌套到另一个数组
-            $where_data = [$menu_path_where];
+            $where_data[] = $menu_path_where;
         }
 
-        
-        $is_menu_data_exist_res = self::where($where_data)->select('menu_id');
+        // ->first查到数据返回Eloquent 对象，查不到返回null
+        $is_menu_data_exist_res = self::where($where_data)->select('menu_id')->first();
         if ($is_menu_data_exist_res) {
             return true;
         }
@@ -194,17 +194,17 @@ class Menu extends Model
     public static function addMenu($data)
     {
         if (empty($data)) { //如果$data为空直接返回
-            return false;
+            return 0;
         }
         $allow_data = $data;
-        
-
+   
          // -menu_name重复性验证
          $menu_name = $allow_data['menu_name'];
          $where = [['menu_name', '=',  $menu_name]];
- 
+
  
          //优化mysql查询,如果只是判断数据是否存在,用exists查询并只返回id是最快的？
+        //   exists() 方法主要用于检查数据库中是否存在记录。如果存在，exists() 方法会返回 true，否则返回 false
          $is_repeat_menu_name_res = self::where($where)->select('menu_id')->exists();
  
          if ($is_repeat_menu_name_res) { //如果有数据说明menu_name已存在
@@ -229,6 +229,7 @@ class Menu extends Model
         // menu_path重复性验证
         $menu_path = $allow_data['menu_path'];
         $where = [['menu_path', '=',  $menu_path]];
+
 
         //优化mysql查询,如果只是判断数据是否存在,用exists查询并只返回id是最快的？
         $is_repeat_menu_path_res = self::where($where)->select('menu_id')->exists();
@@ -255,7 +256,7 @@ class Menu extends Model
     public static function editMenu($data)
     {
         if (empty($data)) { //如果$data为空直接返回
-            return false;
+            return 0;
         }
         $allow_data = $data;
         
@@ -263,7 +264,7 @@ class Menu extends Model
        $is_menu_data_exist_res=self::isMenuDataExist($allow_data['menu_id']);
 // 如果不存在，那么直接返回false
         if (empty($is_menu_data_exist_res)) {
-            return false;
+            return '没有该菜单数据!';
         }
 
         //查询该id信息

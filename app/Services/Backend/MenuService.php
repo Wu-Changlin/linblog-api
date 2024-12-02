@@ -7,26 +7,25 @@ use App\Models\Backend\Menu as  MenuModels;
 class MenuService
 {
 
-
-
     //获取list页面数据，表格数据、页数相关数据
-    public static function  getMenuListPageData($data)
+    public static function  getMenuListPageData($data,$current_page,$current_page_limit)
     {
-
+        if (empty($current_page) || empty($current_page_limit) ) { //如果$current_page 或$current_page_limit为空直接返回0
+            return 0;
+        }
         
-    // paginate() 分页响应通常包含data（数据）和meta（元数据）键，其中meta键包含current_page、last_page、per_page、total等信息，
-    // 用于表示当前页、最后一页、每页数量和总数据量。此外，links键包含分页导航链接，如first、prev、next、last。
+        $get_menu_list_page_data_res=MenuModels:: getPageDataByCondition($data,$current_page,$current_page_limit);
 
+        // 获取成功 返回菜单信息 
+        if ($get_menu_list_page_data_res) {
 
-        // 自定义分页数量为10，当前页为2，查询字段为'name'和'email'，查询条件为'active'为1
-        $get_menu_list_page_data_res = MenuModels::where('is_pulled', 0)
-            ->select('menu_id', 'is_pulled')
-            ->paginate(1, ['*'], 'page', 1);
+            return $get_menu_list_page_data_res;
+        }
 
+        //返回错误消息或false 失败
+        $error_msg = $get_menu_list_page_data_res;
 
-        
-
-        return $get_menu_list_page_data_res;
+        return  $error_msg;
     }
 
 
@@ -37,7 +36,7 @@ class MenuService
     {
 
         if (empty($data)) { //如果$data为空直接返回
-            return false;
+            return 0;
         }
 
         $get_current_edit_menu_info_res = MenuModels::getCurrentMenuInfo($data); //执行新增
@@ -48,8 +47,11 @@ class MenuService
             return $get_current_edit_menu_info_res;
         }
 
-        //空数据，返回false
-        return  false;
+        //返回错误消息或false 失败
+        $error_msg = $get_current_edit_menu_info_res;
+
+        return  $error_msg;
+       
     }
 
     // 获取没有下架的数据
@@ -68,8 +70,11 @@ class MenuService
             return $get_is_no_pulled_data_res;
         }
 
-        //空数据，返回false 
-        return  [];
+         //返回错误消息或false 失败
+         $error_msg = $get_is_no_pulled_data_res;
+
+         return  $error_msg;
+
     }
 
 
@@ -79,7 +84,7 @@ class MenuService
     {
 
         if (empty($data)) { //如果$data为空直接返回
-            return false;
+            return 0;
         }
 
         $add_menu_res = MenuModels::addMenu($data);
