@@ -105,6 +105,15 @@ class Menu extends BaseModel
                 ->paginate($current_page_limit, ['*'], 'page', $current_page);
             }
 
+
+            // dd($get_data_by_condition);
+
+        //     // 获取总页数
+        // $totalPages = $get_data_by_condition->lastPage();
+ 
+        // // 获取总条目数
+        // $totalItems = $get_data_by_condition->total();
+
             // 获取集合转数组结果 
             $results_array=$get_data_by_condition->toArray();   
 

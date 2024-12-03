@@ -62,7 +62,7 @@ class UserController extends Controller
 
          // 失败情景
          if($add_user_result===false){
-            sendMSG(200, [],'添加失败！');
+            sendMSG(200, [],'失败，没有结果！');
         }
 
         // 提交空用户数据情景

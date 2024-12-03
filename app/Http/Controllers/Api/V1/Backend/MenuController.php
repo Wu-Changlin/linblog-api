@@ -121,12 +121,41 @@ class MenuController extends Controller
 
         // 成功情景
         if (is_array($get_menu_list_page_data_result)) {
-            sendMSG(200, $get_menu_list_page_data_result,  '成功！');
+            // 组装响应数组
+
+            // 前端接收格式 "data":{
+            //     "total_pages": 2,
+            //     "total_count": 10,
+            //     "current_page": 1,
+            //     "current_page_limit": 10,
+            //     "模块名_list_data": [{},{}]
+            // }
+
+            // 前端接收格式 "data":{
+            //     "total_pages": 2,
+            //     "total_count": 10,
+            //     "current_page": 1,
+            //     "current_page_limit": 10,
+            //     "模块名_list_data": [{},{}]
+            // }
+
+            //空查询结果， last_page(最后一页数字)值是1；通过判断查询结果总数是等于0.重新设置last_page值为0，否则保持last_page值。
+            $total_pages = empty($get_menu_list_page_data_result['total']) ? $get_menu_list_page_data_result['last_page'] = 0 : $get_menu_list_page_data_result['last_page'];
+            $response_data = [
+                "total_pages" => $total_pages,
+                "total_count" => $get_menu_list_page_data_result['total'],
+                "current_page" => $get_menu_list_page_data_result['current_page'],
+                "current_page_limit" => $get_menu_list_page_data_result['per_page'],
+                "menu_list_data" => $get_menu_list_page_data_result['data']
+
+            ];
+
+            sendMSG(200, $response_data,  '成功！');
         }
 
         // 失败情景
         if ($get_menu_list_page_data_result === false) {
-            sendMSG(200, [], '失败！');
+            sendMSG(200, [], '失败，没有结果！');
         }
 
         // 空数据情景
@@ -137,10 +166,6 @@ class MenuController extends Controller
         if (is_string($get_menu_list_page_data_result) && $get_menu_list_page_data_result) {
             sendErrorMSG(403, $get_menu_list_page_data_result);
         }
-
-
-        // paginate() 分页响应通常包含data（数据）和meta（元数据）键，其中meta键包含current_page、last_page、per_page、total等信息，
-        // 用于表示当前页、最后一页、每页数量和总数据量。此外，links键包含分页导航链接，如first、prev、next、last。
     }
 
 
@@ -151,23 +176,123 @@ class MenuController extends Controller
         $request_params_all_data = $request->all();
 
         // 获取表中的所有字段名 (定义允许的字段)
-$allowed_field_names_array_res=  MenuService::GetTableAllFieldNames();
+        $allowed_field_names_array_res =  MenuService::GetTableAllFieldNames();
 
-if(!is_array($allowed_field_names_array_res)){
-    sendErrorMSG(403, '字段数据异常！');
-}
-
-
-// 过滤并验证数据
-$filtered_data = array_intersect_key($request_params_all_data,$allowed_field_names_array_res);
-
-// 查询输入数据
-$where_data =[];
-
-// 查询条件数组
-$where_data=toConditionsArray($filtered_data);
+        if (!is_array($allowed_field_names_array_res)) {
+            sendErrorMSG(403, '字段数据异常！');
+        }
 
 
+        // 过滤并验证数据
+        $filtered_data = array_intersect_key($request_params_all_data, $allowed_field_names_array_res);
+
+        // 查询输入数据
+        $where_data = [];
+
+
+
+        // 查询条件数组
+        $where_data = toConditionsArray($filtered_data);
+
+        // 如果查询条件数组为空
+        if (empty($where_data)) {
+            sendErrorMSG(403, '请输入查询内容！');
+        }
+
+
+        // "total_pages": 2,  总页数
+        // "total_count": 10,       总个数
+        // "current_page": 1,       当前页
+        // "current_page_limit": 10,   当前分页数量
+        // $request_params_all_data = $request->all();
+
+        // 当前页
+        $current_page = $request->input('current_page');
+        // 当前分页数量
+        $current_page_limit = $request->input('current_page_limit');
+
+        $authorization_header = $request->header('Authorization');
+
+        // 假设你从HTTP头部获取了Authorization头部
+        // echo 'authorizationHeader:'.$authorizationHeader;
+        // 解析Authorization头部，获取token
+
+        // 假设token前缀是Bearer
+        $token = trim(str_ireplace('Bearer ', '', $authorization_header));
+        // 校验令牌如果验证成功返回payload，否则返回false  
+        $payload = JsonWebTokenService::verifyJWT($token);
+
+        if (empty($payload)) {
+            sendErrorMSG(403, '访问令牌数据异常！');
+        }
+
+        // 从token 中取 role的值   `role` '角色；0：默认，1：普通用户，2：管理员',
+        $role_name = self::mate_role_number_to_name($payload['role']);
+
+        //普通用户 只能查询 deleted_at 为空数据,deleted_at=''添加到查询条件
+        if ($role_name === 'user') {
+            // 查询条件
+            $where_data[] = ['deleted_at', '=', ''];
+        }
+
+        $query_input_data_result = MenuService::getQueryInputData($where_data, $current_page, $current_page_limit);
+
+
+
+
+        // 成功情景
+        if (is_array($query_input_data_result)) {
+
+            // 组装响应数组
+
+            // 前端接收格式 "data":{
+            //     "total_pages": 2,
+            //     "total_count": 10,
+            //     "current_page": 1,
+            //     "current_page_limit": 10,
+            //     "模块名_list_data": [{},{}]
+            // }
+
+            // 前端接收格式 "data":{
+            //     "total_pages": 2,
+            //     "total_count": 10,
+            //     "current_page": 1,
+            //     "current_page_limit": 10,
+            //     "模块名_list_data": [{},{}]
+            // }
+
+            //空查询结果， last_page(最后一页数字)值是1；通过判断查询结果总数是等于0.重新设置last_page值为0，否则保持last_page值。
+            $total_pages = empty($query_input_data_result['total']) ? $query_input_data_result['last_page'] = 0 : $query_input_data_result['last_page'];
+            $response_data = [
+                "total_pages" => $total_pages,
+                "total_count" => $query_input_data_result['total'],
+                "current_page" => $query_input_data_result['current_page'],
+                "current_page_limit" => $query_input_data_result['per_page'],
+                "menu_list_data" => $query_input_data_result['data']
+
+            ];
+
+            sendMSG(200, $response_data,  '成功！');
+        }
+
+        // 失败情景（没有数据）
+        if ($query_input_data_result === false) {
+            sendMSG(200, [], '失败，没有结果！');
+        }
+
+        // 提交空数据情景
+        if ($query_input_data_result === 0) {
+            sendErrorMSG(403,  '数据异常！');
+        }
+        // 数据没有通过校验情景
+        if (is_string($query_input_data_result) && $query_input_data_result) {
+            sendErrorMSG(403, $query_input_data_result);
+        }
+    }
+
+    // 分页数据
+    public function  getChildPaginationChangeData(PaginationRequest $request)
+    {
         // "total_pages": 2,  总页数
         // "total_count": 10,       总个数
         // "current_page": 1,       当前页
@@ -201,37 +326,63 @@ $where_data=toConditionsArray($filtered_data);
         if ($role_name === 'user') {
             // 查询条件
             $where_data[] = ['deleted_at', '=', ''];
-            $query_input_data_result = MenuService::getQueryInputData($where_data, $current_page, $current_page_limit);
+            $get_child_pagination_change_data_result = MenuService::getMenuListPageData($where_data, $current_page, $current_page_limit);
         }
 
         //管理员   无限制deleted_at 
         if ($role_name === 'admin') {
 
-            $query_input_data_result = MenuService::getQueryInputData([], $current_page, $current_page_limit);
+            $get_child_pagination_change_data_result = MenuService::getMenuListPageData([], $current_page, $current_page_limit);
         }
 
         // 成功情景
-        if (is_array($query_input_data_result)) {
-            sendMSG(200, $query_input_data_result,  '成功！');
+        if (is_array($get_child_pagination_change_data_result)) {
+              // 组装响应数组
+
+            // 前端接收格式 "data":{
+            //     "total_pages": 2,
+            //     "total_count": 10,
+            //     "current_page": 1,
+            //     "current_page_limit": 10,
+            //     "模块名_list_data": [{},{}]
+            // }
+
+            // 前端接收格式 "data":{
+            //     "total_pages": 2,
+            //     "total_count": 10,
+            //     "current_page": 1,
+            //     "current_page_limit": 10,
+            //     "模块名_list_data": [{},{}]
+            // }
+
+            //空查询结果， last_page(最后一页数字)值是1；通过判断查询结果总数是等于0.重新设置last_page值为0，否则保持last_page值。
+            $total_pages = empty($get_child_pagination_change_data_result['total']) ? $get_child_pagination_change_data_result['last_page'] = 0 : $get_child_pagination_change_data_result['last_page'];
+            $response_data = [
+                "total_pages" => $total_pages,
+                "total_count" => $get_child_pagination_change_data_result['total'],
+                "current_page" => $get_child_pagination_change_data_result['current_page'],
+                "current_page_limit" => $get_child_pagination_change_data_result['per_page'],
+                "menu_list_data" => $get_child_pagination_change_data_result['data']
+
+            ];
+
+            sendMSG(200, $response_data,  '成功！');
         }
 
         // 失败情景
-        if ($query_input_data_result === false) {
-            sendMSG(200, [], '失败！');
+        if ($get_child_pagination_change_data_result === false) {
+            sendMSG(200, [], '失败，没有结果！');
         }
 
         // 空数据情景
-        if ($query_input_data_result === 0) {
+        if ($get_child_pagination_change_data_result === 0) {
             sendErrorMSG(403,  '数据异常！');
         }
         // 数据没有通过校验情景
-        if (is_string($query_input_data_result) && $query_input_data_result) {
-            sendErrorMSG(403, $query_input_data_result);
+        if (is_string($get_child_pagination_change_data_result) && $get_child_pagination_change_data_result) {
+            sendErrorMSG(403, $get_child_pagination_change_data_result);
         }
     }
-
-    // 分页数据
-    public function  getChildPaginationChangeData(PaginationRequest $request) {}
 
 
     // 获取当前编辑菜单信息  返回  true 菜单信息   ， false 失败
@@ -251,9 +402,8 @@ $where_data=toConditionsArray($filtered_data);
 
             // 失败情景
             if ($get_current_edit_menu_info_result === false) {
-                sendMSG(200, [], '失败！');
+                sendMSG(200, [], '失败，没有结果！');
             }
-
 
             // 空数据情景
             if (empty($get_current_edit_menu_info_result)) {
@@ -315,14 +465,14 @@ $where_data=toConditionsArray($filtered_data);
 
         //执行添加
         if ($request_params_all_data['action'] === 'add') {
-        // 添加  返回  true 成功  ， 错误消息或false 失败
+            // 添加  返回  true 成功  ， 错误消息或false 失败
             $add_or_edit_menu_result = MenuService::addMenu($add_or_edit_menu_data);
         }
 
         //执行编辑
         if ($request_params_all_data['action'] === 'edit') {
             $add_or_edit_menu_data['menu_id'] = $request_params_all_data['menu_id'];
-        // 添加  返回  true 成功  ， 错误消息或false 失败
+            // 添加  返回  true 成功  ， 错误消息或false 失败
             $add_or_edit_menu_result = MenuService::editMenu($add_or_edit_menu_data);
         }
 
@@ -333,7 +483,7 @@ $where_data=toConditionsArray($filtered_data);
 
         // 失败情景
         if ($add_or_edit_menu_result === false) {
-            sendMSG(200, [], $request_params_all_data['action'] . $modular_name . '失败！');
+            sendMSG(200, [], $request_params_all_data['action'] . $modular_name . '失败，没有结果！');
         }
 
         // 空数据情景
