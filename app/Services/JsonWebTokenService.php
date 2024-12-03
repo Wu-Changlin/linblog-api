@@ -3,8 +3,8 @@
 
 
 namespace App\Services;
-//use Firebase\JWT\JWT;//加载jwt插件库
 
+use App\Services\Backend\UserService;
 
 
 // 在框架启动的时候读取.env文件中的KEY值，并将其赋给一个常量，然后在类中使用这个常量来初始化你的私有静态属性。
@@ -235,6 +235,34 @@ $payload['exp']= $payload['iat']+self::$reset_password_token_time_to_live;
         if (isset($payload['exp']) && $payload['exp'] < time()) {
             return false;
         }
+
+
+        // 5.验证昵称没有定义或没有值
+        if (!isset($payload['aub']) || empty($payload['aub'])) {
+            return false;
+        }
+
+
+              // 6.验证用户账号状态、是否启用;以用户昵称为查询条件
+              $verify_account_data = [
+                'nick_name' => $payload['aub'],
+            ];
+         //   //验证账号状态： 通过 返回true，没有通过返回错误消息或false失败
+            // $verify_account_result=UserService::verifyAccount($verify_account_data);
+    // //验证失败
+               // if ($verify_account_result!= true) {
+        //    return false;
+        // }
+
+        // 7.验证用户是否已登录
+        $is_logged_in_data = ['nick_name' => $payload['aub']];
+        // is_logged_in  true 是，返回错误消息或false 失败
+        $is_logged_in_result = UserService::isLogin($is_logged_in_data);
+        // 没有登录
+        if ($is_logged_in_result!=true) {
+            return false;
+        }
+
     //    dd($payload);
  
         return $payload;

@@ -319,7 +319,7 @@ class LoginController extends Controller
         //验证账号状态： 通过 返回true，没有通过返回错误消息或false失败
         // $verify_account_result=UserService::verifyAccount($verify_account_data);
 
-        // if (empty($verify_account_result)) {
+        // if ($verify_account_result!= true) {
         //     sendErrorMSG(403, '验证账号失败！');
         // }
 

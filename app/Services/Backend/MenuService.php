@@ -149,7 +149,7 @@ class MenuService
     {
 
         if (empty($data)) { //如果$data为空直接返回
-            return false;
+            return 0;
         }
 
         $edit_menu_res = MenuModels::editMenu($data);

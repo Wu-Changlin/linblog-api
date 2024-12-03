@@ -7,6 +7,32 @@ use App\Models\Backend\User as  UserModels;
 class UserService
 {
 
+
+
+    //获取list页面数据，表格数据、页数相关数据
+    public static function  getUserListPageData($data,$current_page,$current_page_limit)
+    {
+        if (empty($current_page) || empty($current_page_limit) ) { //如果$current_page 或$current_page_limit为空直接返回0
+            return 0;
+        }
+        
+        $get_menu_list_page_data_res=UserModels::getPageDataByCondition($data,$current_page,$current_page_limit);
+
+        // 获取成功 返回菜单信息 
+        if ($get_menu_list_page_data_res) {
+
+            return $get_menu_list_page_data_res;
+        }
+
+        //返回错误消息或false 失败
+        $error_msg = $get_menu_list_page_data_res;
+
+        return  $error_msg;
+    }
+
+
+
+
     // 获取当前用户信息  返回  true 用户信息  ， false 失败
     public static function getCurrentUserInfo($data){
 
@@ -52,6 +78,31 @@ class UserService
         return  $error_msg;
 
     }
+
+        // 编辑用户  返回  true 成功  ， 错误消息或false 失败
+        public static function editUser($data)
+        {
+    
+            if (empty($data)) { //如果$data为空直接返回0
+                return 0;
+            }
+    //   `account_status`账号状态 0：默认，1：正常，2：获取过多验证码锁定，3：多次输入错误密码锁定，4：销号',
+    
+
+            $edit_user_res = UserModels::editUser($data); //执行新增
+    
+            // 添加成功 返回true
+            if($edit_user_res===true){
+                return true;
+            }
+    
+            //返回错误消息或false 失败
+            $error_msg = $edit_user_res;
+    
+            return  $error_msg;
+    
+        }
+
 
 
 // 用户登录
@@ -117,10 +168,6 @@ return  $error_msg;
         return  $error_msg;
     }
 
-
-    public static function getAll(){
-        
-    }
 
 
         /**
