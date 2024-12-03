@@ -5,6 +5,8 @@ namespace App\Models\Backend;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\BaseModel;
 
+use Illuminate\Support\Facades\Schema; //‌Schema facade‌是Laravel框架中用于创建和操作数据库结构的一个功能强大的工具
+
 
 class Menu extends BaseModel
 {
@@ -20,6 +22,47 @@ class Menu extends BaseModel
     //         'satus',
     //         'remark',
     //     ];
+
+        // 获取表中的所有字段名
+
+    public static function  getTableAllFieldNames(){
+            // 假设你已经有了一个模型实例，比如 $model 
+            $model = self::first(); // 替换 YourModel 为你的实际模型名
+
+            // 获取表名
+            $table_name = $model->getTable();
+            
+            // 获取所有字段名，示例： $get_table_all_field_names_res= [  0 => "menu_id",1 => "menu_name]
+            $get_table_all_field_names_res = Schema::getColumnListing($table_name);
+
+        
+
+            // 是数组、存在且有值
+            if(is_array($get_table_all_field_names_res) &&  isset($get_table_all_field_names_res) && !empty($get_table_all_field_names_res)){
+                /* 
+                使用array_flip()函数将值转换为键,示例： 
+                原 $get_table_all_field_names_res= [  0 => "menu_id",1 => "menu_name]
+                转换为 $results_array= [   "menu_id"=>0, "menu_name"=>1]
+                */
+                $results_array=array_flip($get_table_all_field_names_res);
+                return $results_array;
+            }
+
+            return false;
+
+            // 使用array_flip()函数将值转换为键
+            // $v=array_flip($get_table_all_field_names_res);
+
+            // 打印所有字段名
+            // foreach ($get_table_all_field_names_res as $column) {
+            //     echo $column . PHP_EOL;
+            // }
+  
+    } 
+
+
+
+
 
     // get Ip is   exist black list table  获取Ip存在黑名单表
 

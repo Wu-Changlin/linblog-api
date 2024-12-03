@@ -7,6 +7,47 @@ use App\Models\Backend\Menu as  MenuModels;
 class MenuService
 {
 
+
+    // 获取查询输入数据
+    public static function    getQueryInputData($data,$current_page,$current_page_limit){
+        if (empty($data) || empty($current_page) || empty($current_page_limit) ) { //如果$data或$current_page 或$current_page_limit为空直接返回0
+            return 0;
+        }
+        
+        $get_query_input_data_res=MenuModels::getPageDataByCondition($data,$current_page,$current_page_limit);
+
+        // 获取成功 返回菜单信息 
+        if ($get_query_input_data_res) {
+
+            return $get_query_input_data_res;
+        }
+
+        //返回错误消息或false 失败
+        $error_msg = $get_query_input_data_res;
+
+        return  $error_msg;
+    }
+
+
+        // 获取表中的所有字段名
+
+    public static function  getTableAllFieldNames()
+    {
+        $get_table_all_field_names_res=MenuModels::getTableAllFieldNames();
+
+        // 获取成功 返回菜单信息 
+        if ($get_table_all_field_names_res) {
+
+            return $get_table_all_field_names_res;
+        }
+
+        //返回错误消息或false 失败
+        $error_msg = $get_table_all_field_names_res;
+
+        return  $error_msg;
+
+    }
+
     //获取list页面数据，表格数据、页数相关数据
     public static function  getMenuListPageData($data,$current_page,$current_page_limit)
     {
@@ -14,7 +55,7 @@ class MenuService
             return 0;
         }
         
-        $get_menu_list_page_data_res=MenuModels:: getPageDataByCondition($data,$current_page,$current_page_limit);
+        $get_menu_list_page_data_res=MenuModels::getPageDataByCondition($data,$current_page,$current_page_limit);
 
         // 获取成功 返回菜单信息 
         if ($get_menu_list_page_data_res) {
