@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 
 // 用户模块
-class AddOrEditMenuRequest extends FormRequest
+class AddOrEditUserRequest extends FormRequest
 {
 
     /**
@@ -53,19 +53,35 @@ class AddOrEditMenuRequest extends FormRequest
      */
     public function rules()
     {
-    // 'regex:/^[\x{4e00}-\x{9fa5}a-zA-Z0-9_]+$/' // 正则表达式匹配汉字、字母、数字和下划线
+
+      /*  这个正则表达式的含义如下：
+
+^([A-Za-z0-9+/]{4})* 表示字符串以0或多个base64编码组开头。
+([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==){1} 表示字符串以三种形式之一结束：
+[A-Za-z0-9+/]{4}：完整的base64编码组。
+[A-Za-z0-9+/]{3}=：缺少一个字符的base64编码组，末尾有一个等号。
+[A-Za-z0-9+/]{2}==：缺少两个字符的base64编码组，末尾有两个等号。
+‌使用这个正则表达式可以有效地检查字符串是否为base64编码。‌如果字符串符合上述模式，则说明它是有效的base64编码；如果不符合，则不是有效的base64编码。
+*/
+        // 'avatar' =>['required','regex: /^data:image\/(?:png|jpeg|webp|gif|svg|x-icon);base64,(([A-Za-z0-9+\/]{4})*([A-Za-z0-9+\/]{4}|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{2}==))$/'],
+        // 'avatar' =>['required','regex: /^data:image\/(?:png|jpeg|webp|gif|svg|x-icon);base64,(([A-Za-z0-9+\/]{4})*([A-Za-z0-9+\/]{4}|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{2}==)){1}$/'],
+
+
         $rules =  [
             'user_id' => 'required|regex:/^[0-9]+$/',
-            'nick_name' => 'required|max:10|regex:/^[a-z]+([_][a-z]+)?$/',
+            'nick_name' => 'required|max:10|regex:/^[\x{4e00}-\x{9fa5}a-zA-Z0-9_]+$/u',
             'email' => 'required|regex:/^\s*\w+(?:\.{0,1}[\w-]+)*@[a-zA-Z0-9]+(?:[-.][a-zA-Z0-9]+)*\.[a-zA-Z]+\s*$/',
+            'avatar' =>['required','regex: /^data:image\/(?:png|jpeg|webp|gif|svg|x-icon);base64,(([A-Za-z0-9+\/]{4})*([A-Za-z0-9+\/]{4}|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{2}==))$/'],
             'password' => 'required|regex:/^[0-9a-fA-F]{64}$/',
             'confirm_password' =>  'required|regex:/^[0-9a-fA-F]{64}$/',
             'role' => 'required|regex:/^[0-9]+$/',
-            'parent_id' => 'required|regex:/^[0-9]+$/',
             'is_enable' => 'required|regex:/^[0-9]+$/',
             'action' => 'required|regex:/^[a-z]+$/',
         ];
         return $rules;
+
+
+
 
     }
 
@@ -84,8 +100,11 @@ class AddOrEditMenuRequest extends FormRequest
             'email.required'=>'展示名称不能为空',
             'email.regex'=>'展示名称格式错误，请输入中文字符',
 
+            'avatar.required'=>'头像不能为空',
+            'avatar.regex'=>'头像码格式错误',
+
             'password.required'=>'密码不能为空',
-            'password.regex'=>'密码格式错误,示例：64位包含a-F、0-9',
+            'password.regex'=>'密码格式错误,示例: 64位包含a-F、0-9',
 
             'confirm_password.required'=>'确认密码不能为空',
             'confirm_password.regex'=>'确认密码格式错误',
@@ -93,10 +112,9 @@ class AddOrEditMenuRequest extends FormRequest
             'role.required'=>'角色不能为空',
             'role.regex'=>'角色格式错误',
 
-            'parent_id.required'=>'父节点不能为空',
-            'parent_id.regex'=>'父节点码格式错误',
-
             'is_enable.required'=>'启用不能为空',
+            'is_enable.required'=>'启用格式错误',
+
 
             'action.required'=>'操作代码不能为空',
             'action.regex'=>'操作代码格式错误',

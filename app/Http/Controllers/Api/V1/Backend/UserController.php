@@ -85,7 +85,7 @@ class UserController extends Controller
         $current_page_limit = $request->input('current_page_limit');
 
         $authorization_header = $request->header('Authorization');
-
+    
         // 假设你从HTTP头部获取了Authorization头部
         // echo 'authorizationHeader:'.$authorizationHeader;
         // 解析Authorization头部，获取token
@@ -94,7 +94,7 @@ class UserController extends Controller
         $token = trim(str_ireplace('Bearer ', '', $authorization_header));
         // 校验令牌如果验证成功返回payload，否则返回false  
         $payload = JsonWebTokenService::verifyJWT($token);
-
+    
         if (empty($payload)) {
             sendErrorMSG(403, '访问令牌数据异常！');
         }
@@ -105,8 +105,7 @@ class UserController extends Controller
         //普通用户 只能查询当前登录用户数据
         if ($role_name === 'user') {
             // 查询条件
-            
-            $where_data[] = ['nick_name', '=',$payload['aud'] ];
+            $where_data[] = ['nick_name', '=',$payload['aud']];
             $get_user_list_page_data_result = UserService::getUserListPageData($where_data, $current_page, $current_page_limit);
         }
 
@@ -219,6 +218,7 @@ class UserController extends Controller
         // 校验令牌如果验证成功返回payload，否则返回false  
         $payload = JsonWebTokenService::verifyJWT($token);
 
+     
         if (empty($payload)) {
             sendErrorMSG(403, '访问令牌数据异常！');
         }
@@ -417,47 +417,47 @@ class UserController extends Controller
 
 
     // 添加用户
-    public function addUser(Request $request)
-    {
-        // 获取全部提交数据
-        $request_params_all_data = $request->all();
+    // public function addUser(Request $request)
+    // {
+    //     // 获取全部提交数据
+    //     $request_params_all_data = $request->all();
 
-        // 拼接添加用户数据
-        $add_user_data['nick_name'] = $request_params_all_data['nick_name'];
-        $add_user_data['email'] = $request_params_all_data['email'];
-        $add_user_data['avatar'] = $request_params_all_data['avatar'];
-        $add_user_data['password'] = $request_params_all_data['password'];
-        $add_user_data['confirm_password'] = $request_params_all_data['confirm_password'];
-        $add_user_data['role'] = $request_params_all_data['role'];
-        $add_user_data['is_enable'] = $request_params_all_data['is_enable'];
+    //     // 拼接添加用户数据
+    //     $add_user_data['nick_name'] = $request_params_all_data['nick_name'];
+    //     $add_user_data['email'] = $request_params_all_data['email'];
+    //     $add_user_data['avatar'] = $request_params_all_data['avatar'];
+    //     $add_user_data['password'] = $request_params_all_data['password'];
+    //     $add_user_data['confirm_password'] = $request_params_all_data['confirm_password'];
+    //     $add_user_data['role'] = $request_params_all_data['role'];
+    //     $add_user_data['is_enable'] = $request_params_all_data['is_enable'];
 
-        // 添加用户  返回 0 空数据  true 成功  ， 错误消息或false 失败
-        $add_user_result = UserService::addUser($add_user_data);
+    //     // 添加用户  返回 0 空数据  true 成功  ， 错误消息或false 失败
+    //     $add_user_result = UserService::addUser($add_user_data);
 
-        // 成功情景
-        if ($add_user_result === true) {
-            sendMSG(200, $add_user_result, '添加成功！');
-        }
+    //     // 成功情景
+    //     if ($add_user_result === true) {
+    //         sendMSG(200, $add_user_result, '添加成功！');
+    //     }
 
-        // 失败情景
-        if ($add_user_result === false) {
-            sendMSG(200, [], '失败，没有结果！');
-        }
+    //     // 失败情景
+    //     if ($add_user_result === false) {
+    //         sendMSG(200, [], '失败，没有结果！');
+    //     }
 
-        // 提交空用户数据情景
-        if ($add_user_result === 0) {
-            sendErrorMSG(403, '提交空数据！');
-        }
-        // 用户数据没有通过校验情景
-        if (is_string($add_user_result) && $add_user_result) {
-            sendErrorMSG(403, $add_user_result);
-        }
-    }
-
-
+    //     // 提交空用户数据情景
+    //     if ($add_user_result === 0) {
+    //         sendErrorMSG(403, '提交空数据！');
+    //     }
+    //     // 用户数据没有通过校验情景
+    //     if (is_string($add_user_result) && $add_user_result) {
+    //         sendErrorMSG(403, $add_user_result);
+    //     }
+    // }
 
 
-    // 添加或编辑用户
+
+
+    // 添加或编辑用户  如果修改邮箱、昵称、密码中其一，那么退出登录、访问令牌和刷新令牌加入黑名单
     public function addOrEditUser(AddOrEditUserRequest $request)
     {
 

@@ -39,7 +39,7 @@ class UserService
         if (empty($data)) { //如果$data为空直接返回0
             return 0;
         }
-        $get_current_user_info_res = UserModels::getCurrentUserInfo($data); //执行新增
+        $get_current_user_info_res = UserModels::getCurrentUserInfo($data); //执行查询
        
         // 添加成功 返回true
         if($get_current_user_info_res){
@@ -80,6 +80,7 @@ class UserService
     }
 
         // 编辑用户  返回  true 成功  ， 错误消息或false 失败
+        // 如果修改邮箱、昵称、密码中其一，那么退出登录、访问令牌和刷新令牌加入黑名单
         public static function editUser($data)
         {
     
@@ -90,7 +91,8 @@ class UserService
     
 
             $edit_user_res = UserModels::editUser($data); //执行新增
-    
+            
+
             // 添加成功 返回true
             if($edit_user_res===true){
                 return true;

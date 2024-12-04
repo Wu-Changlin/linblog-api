@@ -29,7 +29,7 @@ class User extends BaseModel
       // 按条件获取页码数据 返回 条件为空返回0； 有数据返回查询结果 ； 空数据，返回[]。
       public static function  getPageDataByCondition($data, $current_page, $current_page_limit)
       {
-  
+       
           if (empty($current_page) || empty($current_page_limit)) { //如果$current_page 或$current_page_limit为空直接返回0
               return 0;
           }
@@ -49,19 +49,18 @@ class User extends BaseModel
           paginate()参数有四个,第一个是limit 每页的数据条数,第二个是可以不用去操作直接写：['*'],
           第三个是页面的名称一般都是：‘page’,第四个是当前页：$cur_page。
           */
-  
-  
+
           // 有查询条件
           if (isset($where_data) && !empty($where_data)) {
               //返回 有值paginate对象有查询结果，没有值paginate对象没有有查询结果
               $get_data_by_condition = self::where($where_data)
-                  ->select('menu_id', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
+                  ->select('user_id', 'nick_name', 'avatar', 'email', 'is_enable', 'role', 'account_status', 'login_ip')
                   ->paginate($current_page_limit, ['*'], 'page', $current_page);
           }
           // 没有查询条件
           if (empty($where_data)) {
               //返回 有值paginate对象有查询结果，没有值paginate对象没有有查询结果
-              $get_data_by_condition = self::select('menu_id', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
+              $get_data_by_condition = self::select('user_id', 'nick_name', 'avatar', 'email', 'is_enable', 'role', 'account_status', 'login_ip')
                   ->paginate($current_page_limit, ['*'], 'page', $current_page);
           }
   
@@ -104,7 +103,7 @@ class User extends BaseModel
             return 0;
         }
         $allow_data = $data;
-
+        
         // 初始化查询条件
         $where_data = [];
 
@@ -131,8 +130,10 @@ class User extends BaseModel
             // 将一个数组嵌套到另一个数组
             $where_data[]= $user_id_where;
         }
-       
-        $user_res = self::where($where_data)->select('user_id','nick_name','email','email_verification_code','role','account_status','login_ip','is_enable','is_logged_in','last_login_time')->first();
+
+        $user_res = self::where($where_data)
+        ->select('user_id','nick_name','email','email_verification_code','role','account_status','login_ip','is_enable','is_logged_in','last_login_time')
+        ->first();
         
         if ($user_res) {
            
@@ -474,6 +475,7 @@ class User extends BaseModel
 
         // 编辑成功
         if ($edit_res) {
+            // 如果修改邮箱、昵称、密码中其一，那么退出登录、访问令牌和刷新令牌加入黑名单
             return true;
         }
 
