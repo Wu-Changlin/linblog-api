@@ -65,8 +65,6 @@ class AddOrEditUserRequest extends FormRequest
 */
         // 'avatar' =>['required','regex: /^data:image\/(?:png|jpeg|webp|gif|svg|x-icon);base64,(([A-Za-z0-9+\/]{4})*([A-Za-z0-9+\/]{4}|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{2}==))$/'],
         // 'avatar' =>['required','regex: /^data:image\/(?:png|jpeg|webp|gif|svg|x-icon);base64,(([A-Za-z0-9+\/]{4})*([A-Za-z0-9+\/]{4}|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{2}==)){1}$/'],
-
-
         $rules =  [
             'user_id' => 'required|regex:/^[0-9]+$/',
             'nick_name' => 'required|max:10|regex:/^[\x{4e00}-\x{9fa5}a-zA-Z0-9_]+$/u',

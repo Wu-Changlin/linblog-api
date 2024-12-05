@@ -77,6 +77,11 @@ class Menu extends BaseModel
         // 示例：[["id",'=' ,1],['name",'=','menu']]
         $where_data = $allow_data;
 
+         //防止空条件导致结果返回空模型对象
+         if(self::isIssetOrEmptyWhereData($where_data)){
+            return false;
+        }
+
         $get_data_by_condition = self::where($where_data)
             ->select('menu_id', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
             ->get();
@@ -129,6 +134,10 @@ class Menu extends BaseModel
 
         // 有查询条件
         if (isset($where_data) && !empty($where_data)) {
+             //防止空条件导致结果返回空模型对象
+        if(self::isIssetOrEmptyWhereData($where_data)){
+            return false;
+        }
             //返回 有值paginate对象有查询结果，没有值paginate对象没有有查询结果
             $get_data_by_condition = self::where($where_data)
                 ->select('menu_id', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
@@ -136,6 +145,10 @@ class Menu extends BaseModel
         }
         // 没有查询条件
         if (empty($where_data)) {
+             //防止空条件导致结果返回空模型对象
+        if(self::isIssetOrEmptyWhereData($where_data)){
+            return false;
+        }
             //返回 有值paginate对象有查询结果，没有值paginate对象没有有查询结果
             $get_data_by_condition = self::select('menu_id', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
                 ->paginate($current_page_limit, ['*'], 'page', $current_page);
@@ -190,6 +203,11 @@ class Menu extends BaseModel
             $where_data[] = $menu_id_where;
         }
 
+
+         //防止空条件导致结果返回空模型对象
+         if(self::isIssetOrEmptyWhereData($where_data)){
+            return false;
+        }
 
         // ->get查到数据返回Eloquent 集合，查不到返回Eloquent 空集合
         $get_current_edit_menu_info_condition = self::where($where_data)->select('menu_id', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')->first();
@@ -262,6 +280,10 @@ class Menu extends BaseModel
             $where_data[] = $menu_path_where;
         }
 
+         //防止空条件导致结果返回空模型对象
+         if(self::isIssetOrEmptyWhereData($where_data)){
+            return false;
+        }
         // ->first查到数据返回Eloquent 对象，查不到返回null
         $is_menu_data_exist_res = self::where($where_data)->select('menu_id')->first();
         if ($is_menu_data_exist_res) {
@@ -287,44 +309,56 @@ class Menu extends BaseModel
         $allow_data = $data;
 
         // -menu_name重复性验证
-        $menu_name = $allow_data['menu_name'];
-        $where = [['menu_name', '=',  $menu_name]];
+        // 当$allow_data['menu_name'] 已定义，且 $allow_data['menu_name']不为空时，进入 true 分支
+        if (isset($allow_data['menu_name']) && !empty($allow_data['menu_name'])) {
+            $menu_name_where = ['menu_name', '=',  $allow_data['menu_name']];
 
+            // 将一个数组嵌套到另一个数组
+            $where_data[] = $menu_name_where;
+            //优化mysql查询,如果只是判断数据是否存在,用exists查询并只返回id是最快的？
+            $is_repeat_menu_name_res = self::where($where_data)->select('user_id')->exists();
 
-        //优化mysql查询,如果只是判断数据是否存在,用exists查询并只返回id是最快的？
-        //   exists() 方法主要用于检查数据库中是否存在记录。如果存在，exists() 方法会返回 true，否则返回 false
-        $is_repeat_menu_name_res = self::where($where)->select('menu_id')->exists();
-
-        if ($is_repeat_menu_name_res) { //如果有数据说明menu_name已存在
-            return 'menu_name已存在';
+            if ($is_repeat_menu_name_res) { //如果有数据说明menu_name已存在
+                return 'menu_name已存在';
+            }
         }
+
 
 
 
         // -menu_title重复性验证
-        $menu_title = $allow_data['menu_title'];
-        $where = [['menu_title', '=',  $menu_title]];
 
+     // 当$allow_data['menu_title'] 已定义，且 $allow_data['menu_title']不为空时，进入 true 分支
+     if (isset($allow_data['menu_title']) && !empty($allow_data['menu_title'])) {
+        $menu_title_where = ['menu_title', '=',  $allow_data['menu_title']];
 
+        // 将一个数组嵌套到另一个数组
+        $where_data[] = $menu_title_where;
         //优化mysql查询,如果只是判断数据是否存在,用exists查询并只返回id是最快的？
-        $is_repeat_menu_title_res = self::where($where)->select('menu_id')->exists();
+        $is_repeat_menu_title_res = self::where($where_data)->select('user_id')->exists();
 
         if ($is_repeat_menu_title_res) { //如果有数据说明menu_title已存在
             return 'menu_title已存在';
         }
-
-
+    }
         // menu_path重复性验证
-        $menu_path = $allow_data['menu_path'];
-        $where = [['menu_path', '=',  $menu_path]];
 
+             // 当$allow_data['menu_path'] 已定义，且 $allow_data['menu_path']不为空时，进入 true 分支
+     if (isset($allow_data['menu_path']) && !empty($allow_data['menu_path'])) {
+        $menu_path_where = ['menu_path', '=',  $allow_data['menu_path']];
 
+        // 将一个数组嵌套到另一个数组
+        $where_data[] = $menu_path_where;
         //优化mysql查询,如果只是判断数据是否存在,用exists查询并只返回id是最快的？
-        $is_repeat_menu_path_res = self::where($where)->select('menu_id')->exists();
+        $is_repeat_menu_path_res = self::where($where_data)->select('user_id')->exists();
+
         if ($is_repeat_menu_path_res) { //如果有数据说明menu_path已存在
             return 'menu_path已存在';
         }
+    }
+     
 
+    
         //使用create方法新增数据
         $add_res = self::create($allow_data);
         // 添加成功

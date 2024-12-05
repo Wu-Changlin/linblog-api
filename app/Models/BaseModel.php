@@ -76,4 +76,36 @@ class BaseModel extends Model
     //     $is_pull=[0=>'默认', 1=>'是',2=>'否',3=>'已失效'];
     //     return $is_pull[$num];
     // }
+
+
+
+    
+    
+      
+        /**
+         *  查询条件是否未定义或值为空
+         * 防止空条件导致结果返回空模型对象
+         * @description: 
+         * 示例 $is_nick_name_res = self::where($where_data)->select('user_id')->first();
+         *   if ($is_nick_name_res) {
+         *       return true;
+         *   }
+         * 
+         * self:: 指的是调用这段代码的模型本身。
+         *   问题中提到的 $where_data = [] 表示你没有给出任何查询条件。如果你没有设置 $where 数组，
+         *   那么这个查询将会返回模型对象，但是这个对象可能是空的，因为没有指定任何查询条件，所以它可能不会匹配任何数据库记录。
+         * @param {*} $where_data 
+         * @return {*} $where_data没有定义或者值为空,返回 true,否则返回false  
+         */
+        public static function isIssetOrEmptyWhereData($where_data){
+            //没有定义或者值为空,返回 true
+            if(!isset($where_data) || empty($where_data)){
+                return true;
+            }
+            return false;
+
+        }
+
+
+
 }

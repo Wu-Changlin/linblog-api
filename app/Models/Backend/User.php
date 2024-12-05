@@ -130,6 +130,10 @@ class User extends BaseModel
             // 将一个数组嵌套到另一个数组
             $where_data[]= $user_id_where;
         }
+         //防止空条件导致结果返回空模型对象
+         if(self::isIssetOrEmptyWhereData($where_data)){
+            return false;
+        }
 
         $user_res = self::where($where_data)
         ->select('user_id','nick_name','email','email_verification_code','role','account_status','login_ip','is_enable','is_logged_in','last_login_time')
@@ -181,7 +185,10 @@ class User extends BaseModel
             $where_data[] = $email_where;
         }
 
-
+ //防止空条件导致结果返回空模型对象
+ if(self::isIssetOrEmptyWhereData($where_data)){
+    return false;
+}
         // first()方法用于获取满足条件的第一条记录。如果查询结果为空，first()方法会返回null而不是一个空的实例对象。
         // 这意味着如果数据库中没有找到匹配的记录，$res变量将不会被赋予任何值，而是保持为null。
         // 有值返回实例对象‌Eloquent模型实例‌：如果查询成功找到匹配的记录，
@@ -235,8 +242,10 @@ class User extends BaseModel
             // 将一个数组嵌套到另一个数组
             $where_data[] = $email_where;
         }
-
-
+ //防止空条件导致结果返回空模型对象
+ if(self::isIssetOrEmptyWhereData($where_data)){
+    return false;
+}
         $is_logged_in_res = self::where($where_data)->select('is_logged_in')->first();
         if ($is_logged_in_res && $is_logged_in_res->is_logged_in === 1) {
             return true;
@@ -311,7 +320,10 @@ class User extends BaseModel
         }
 
 
-     
+      //防止空条件导致结果返回空模型对象
+      if(self::isIssetOrEmptyWhereData($where_data)){
+        return false;
+    }
 
         // 查询字段account_status,is_enable
         $res = self::where($where_data)->select('account_status','is_enable')->first();
@@ -371,8 +383,14 @@ class User extends BaseModel
             $where_data[] = $nick_name_where;
         }
 
+    
+        //防止空条件导致结果返回空模型对象
+        if(self::isIssetOrEmptyWhereData($where_data)){
+            return false;
+        }
 
         $is_nick_name_res = self::where($where_data)->select('user_id')->first();
+  
         if ($is_nick_name_res) {
             return true;
         }
@@ -406,27 +424,39 @@ class User extends BaseModel
 
 
         // -email重复性验证
-        $email = $allow_data['email'];
-        $where = [['email', '=',  $email]];
 
+        $where_data=[];
 
-        //优化mysql查询,如果只是判断数据是否存在,用exists查询并只返回id是最快的？
-        $is_repeat_email_res = self::where($where)->select('user_id')->exists();
+          // 当$allow_data['email'] 已定义，且 $allow_data['email']不为空时，进入 true 分支
+          if (isset($allow_data['email']) && !empty($allow_data['email'])) {
+            $email_where = ['email', '=',  $allow_data['email']];
 
-        if ($is_repeat_email_res) { //如果有数据说明email已注册
-            return 'email已注册';
+            // 将一个数组嵌套到另一个数组
+            $where_data[] = $email_where;
+            //优化mysql查询,如果只是判断数据是否存在,用exists查询并只返回id是最快的？
+            $is_repeat_email_res = self::where($where_data)->select('user_id')->exists();
+
+            if ($is_repeat_email_res) { //如果有数据说明email已注册
+                return 'email已注册';
+            }
         }
-
 
         // nick_name重复性验证
-        $nick_name = $allow_data['nick_name'];
-        $where = [['nick_name', '=',  $nick_name]];
 
-        //优化mysql查询,如果只是判断数据是否存在,用exists查询并只返回id是最快的？
-        $is_repeat_nick_name_res = self::where($where)->select('user_id')->exists();
-        if ($is_repeat_nick_name_res) { //如果有数据说明nick_name已存在
-            return 'nick_name已存在';
+        // 当$allow_data['nick_name'] 已定义，且 $allow_data['nick_name']不为空时，进入 true 分支
+        if (isset($allow_data['nick_name']) && !empty($allow_data['nick_name'])) {
+            $nick_name_where = ['nick_name', '=',  $allow_data['nick_name']];
+
+            // 将一个数组嵌套到另一个数组
+            $where_data[] = $nick_name_where;
+            //优化mysql查询,如果只是判断数据是否存在,用exists查询并只返回id是最快的？
+            $is_repeat_nick_name_res = self::where($where_data)->select('user_id')->exists();
+
+            if ($is_repeat_nick_name_res) { //如果有数据说明nick_name已存在
+                return 'nick_name已存在';
+            }
         }
+
 
         $res = self::create($allow_data); //使用create方法新增用户
         // 添加成功
@@ -452,6 +482,7 @@ class User extends BaseModel
         
         // 判断用户数据是否存在
        $is_menu_data_exist_res=self::isNickNameOrEmailUserExist(['user_id'=>$allow_data['user_id']]);
+       
 // 如果不存在，那么直接返回false
         if (empty($is_menu_data_exist_res)) {
             return '没有该用户数据!';
@@ -461,6 +492,7 @@ class User extends BaseModel
         // 获取数组的所有键
         $select_keys_array = array_keys($allow_data);
         $current_id_res = self::find($allow_data['user_id'],$select_keys_array); 
+      
         $current_id_info=$current_id_res->toArray(); //集合转数组
 
         //判断字段是否需要修改
