@@ -77,11 +77,6 @@ class BaseModel extends Model
     //     return $is_pull[$num];
     // }
 
-
-
-    
-    
-      
         /**
          *  查询条件是否未定义或值为空
          * 防止空条件导致结果返回空模型对象

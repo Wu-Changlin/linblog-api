@@ -5,6 +5,9 @@ namespace App\Models\Backend;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\BaseModel;
 
+use App\Services\JsonWebTokenService;
+
+
 
 class User extends BaseModel
 {
@@ -136,7 +139,7 @@ class User extends BaseModel
         }
 
         $user_res = self::where($where_data)
-        ->select('user_id','nick_name','email','email_verification_code','role','account_status','login_ip','is_enable','is_logged_in','last_login_time')
+        ->select('user_id','nick_name','avatar','email','email_verification_code','role','account_status','login_ip','is_enable','is_logged_in','last_login_time')
         ->first();
         
         if ($user_res) {
@@ -470,10 +473,10 @@ class User extends BaseModel
 
      /**
      * 编辑用户
-     * @param $data 用户数据
+     * @param $data 用户数据 ,$access_token 访问令牌
      * @return int 0：$data为空，true：成功编辑，false.失败
      */
-    public static function editUser($data)
+    public static function editUser($data,$access_token)
     {
         if (empty($data)) { //如果$data为空直接返回
             return 0;
@@ -507,10 +510,20 @@ class User extends BaseModel
 
         // 编辑成功
         if ($edit_res) {
-            // 如果修改邮箱、昵称、密码中其一，那么退出登录、访问令牌和刷新令牌加入黑名单
-            return true;
-        }
+       
+            // 如果修改邮箱、昵称、密码、确认密码中其一，那么退出登录、访问令牌和刷新令牌加入黑名单
+        $diff_assoc = array_diff_assoc($allow_data,['email','nick_name','password','confirm_password']); //1:返回[]空数组，说明2个数组相同 2:返回非空数组（数据相同字段已去除，剩下需要修改的字段数据），说明$data数据和数据库数据不一致，需要执行修改
 
+        if ($diff_assoc) {//有修改字段值，
+            $add_access_token_or_refresh_token_is_on_black_list_result=JsonWebTokenService::addAccessTokenOrRefreshTokenIsOnBlackList($access_token);
+
+            if(empty($add_access_token_or_refresh_token_is_on_black_list_result)){
+                return '禁止刷新令牌失败！';
+            }
+        }
+        return true;
+
+    }
         return false;
     }
 

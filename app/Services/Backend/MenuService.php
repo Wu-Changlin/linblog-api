@@ -155,9 +155,9 @@ class MenuService
         $edit_menu_res = MenuModels::editMenu($data);
 
 
-        // 添加成功 返回true
-        if ($edit_menu_res === true) {
-            return true;
+        // 编辑成功，返回编辑成功后的最新数据
+        if (is_array($edit_menu_res) && !empty($edit_menu_res) ) {
+            return $edit_menu_res;
         }
 
         //返回错误消息或false 失败

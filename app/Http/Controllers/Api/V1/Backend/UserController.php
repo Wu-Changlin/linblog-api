@@ -492,9 +492,25 @@ class UserController extends Controller
 
         //执行编辑
         if ($request_params_all_data['action'] === 'edit') {
-            $add_or_edit_user_data['user_id'] = $request_params_all_data['user_id'];
-            // 添加  返回  true 成功  ， 错误消息或false 失败
-            $add_or_edit_user_result = UserService::editUser($add_or_edit_user_data);
+            
+                 // 使用Request实例的header方法获取Authorization标头
+                 $authorizationHeader = $request->header('Authorization');
+
+                 // $authorizationHeader =$request->input('temporary_token');
+     
+                 // 假设你从HTTP头部获取了Authorization头部
+                 // echo 'authorizationHeader:'.$authorizationHeader;
+                 // 解析Authorization头部，获取token
+                 if ($authorizationHeader) {
+                     // 假设token前缀是Bearer
+                     $token_data = trim(str_ireplace('Bearer ', '', $authorizationHeader));
+                     $add_or_edit_user_data['user_id'] = $request_params_all_data['user_id'];
+                     // 添加  返回  true 成功  ， 错误消息或false 失败
+                     $add_or_edit_user_result = UserService::editUser($add_or_edit_user_data,$token_data);
+                    }
+                    sendErrorMSG(403, '没有访问令牌！');
+
+           
         }
 
         // 成功情景

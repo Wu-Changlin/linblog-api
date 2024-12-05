@@ -5,6 +5,7 @@
 namespace App\Services;
 
 use App\Services\Backend\UserService;
+use App\Redis\RedisBase;
 
 
 // 在框架启动的时候读取.env文件中的KEY值，并将其赋给一个常量，然后在类中使用这个常量来初始化你的私有静态属性。
@@ -293,6 +294,133 @@ $payload['exp']= $payload['iat']+self::$reset_password_token_time_to_live;
         return false;
     }
 
+
+
+     /**
+     * 添加访问令牌或刷新令牌到黑名单中
+     * 
+     * @param string $token_data JWT令牌
+     * @return array|bool 如果添加成功返回true，否则返回false
+     */
+    public static function addAccessTokenOrRefreshTokenIsOnBlackList($token_data){
+
+        if(empty($token_data)){
+            return false;
+        }
+        // 使用 Laravel 提供的 env() 函数来获取.env文件环境变量
+        $repository_serial_number_value = env('ACCESS_TOKEN_OR_REFRESH_TOKEN_BLACK_LIST_SERIAL_NUMBER');
+
+        // 连接redis
+        RedisBase::_initialize(['db' => $repository_serial_number_value]);
+
+        /* 添加token黑名单记录  开始*/
+        $redis_save_data_key_name = $token_data;
+
+        //   解码JWT
+        $payload=self::decodeJWT($token_data);
+        
+        if(empty($payload)){
+            return false;
+        }
+    
+        // 当前时间
+        $now_time=time();
+
+        // 计算过期时间  token到期时间-当前时间=过期时间
+        $generate_info_time_to_live = $payload['exp']- $now_time;
+
+        //  查询键名结果，防止重复添加
+        $is_redis_save_data_key_name_result=RedisBase::get($redis_save_data_key_name);
+        // 如果有值（说明token已在黑名单中），那么返回true
+        if($is_redis_save_data_key_name_result){
+            return true;
+        }
+
+        #设置过期时间为相应生成信息的类型生存时间
+        //  RedisBase::setex($key_name, $seconds, $value); $seconds=单位：秒
+        //  setex 是『SET if Not eXists』(如果不存在，则 SET)的简写
+        // 如果 key 已经存在， SETEX 命令将覆写旧值。
+        // 返回值 设置成功时返回 OK ；当 seconds 参数不合法时，返回一个错误。 
+        RedisBase::setex($redis_save_data_key_name, $generate_info_time_to_live, 'jwt_token'); //给key值设置生存时间
+
+        //  查询添加结果
+        $add_generate_info_result =  RedisBase::get($redis_save_data_key_name);
+
+        // 手动关闭Redis连接
+        // 关闭连接
+        RedisBase::close();
+        // 如果添加成功，那么返回true
+        if ($add_generate_info_result) {
+            return true;
+        }
+        return false;
+  }
+
+     
+    /**
+     * 校验访问令牌或刷新令牌是存在黑名单中
+     * 
+     * @param string $token_data JWT令牌
+     * @return array|bool 如果在黑名单返回true，否则返回false
+     */
+    public static function verifyAccessTokenOrRefreshTokenIsOnBlackList($token_data){
+        
+        if(empty($token_data)){
+            return false;
+        }
+
+          // 使用 Laravel 提供的 env() 函数来获取.env文件环境变量
+          $repository_serial_number_value = env('ACCESS_TOKEN_OR_REFRESH_TOKEN_BLACK_LIST_SERIAL_NUMBER');
+
+
+          // 连接redis
+          RedisBase::_initialize(['db' => $repository_serial_number_value]);
+
+
+          //  查询黑名单结果
+          $is_token_in_black_list_result =  RedisBase::get($token_data);
+  
+          // 手动关闭Redis连接
+          // 关闭连接
+          RedisBase::close();
+          // 如果有值（说明token已在黑名单中），那么返回true
+          if ($is_token_in_black_list_result) {
+              return true;
+          }
+          return false;
+    }
+
+
+
+    /**
+     * 解码JWT
+     * 
+     * @param string $token JWT令牌
+     * @return array|bool 如果验证成功返回payload，否则返回false
+     */
+    public static function decodeJWT($token)
+    {
+        // 1. 拆分JWT
+        $parts = explode('.', $token);
+        if (count($parts) !== 3) {
+            return false;
+        }
+ 
+        list($base64Header, $base64Payload, $base64Signature) = $parts;
+ 
+        // 2. 解码Header和Payload
+        $header = json_decode(self::base64UrlDecode($base64Header), true);
+        $payload = json_decode(self::base64UrlDecode($base64Payload), true);
+        $signature = self::base64UrlDecode($base64Signature);
+ 
+        // 3. 验证签名
+        $expectedSignature = hash_hmac('sha256', "$base64Header.$base64Payload", self::$jwt_secret, true);
+        if (!hash_equals($signature, $expectedSignature)) {
+            return false;
+        }
+
+        return $payload;
+    }
 
      /**
      * Base64URL编码

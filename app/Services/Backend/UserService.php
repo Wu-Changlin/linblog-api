@@ -81,7 +81,7 @@ class UserService
 
         // 编辑用户  返回  true 成功  ， 错误消息或false 失败
         // 如果修改邮箱、昵称、密码中其一，那么退出登录、访问令牌和刷新令牌加入黑名单
-        public static function editUser($data)
+        public static function editUser($data,$access_token)
         {
     
             if (empty($data)) { //如果$data为空直接返回0
@@ -90,7 +90,7 @@ class UserService
     //   `account_status`账号状态 0：默认，1：正常，2：获取过多验证码锁定，3：多次输入错误密码锁定，4：销号',
     
 
-            $edit_user_res = UserModels::editUser($data); //执行新增
+            $edit_user_res = UserModels::editUser($data,$access_token); //执行新增
             
 
             // 添加成功 返回true

@@ -407,7 +407,13 @@ class Menu extends BaseModel
 
         // 编辑成功
         if ($edit_res) {
-            return true;
+            // 返回最新数据
+            $get_current_edit_menu_info_result = self::getCurrentMenuInfo($data);
+            // 成功情景
+            if ($get_current_edit_menu_info_result) {
+                return $get_current_edit_menu_info_result;
+            }
+            return '没有返回最新数据！' ;
         }
 
         return false;

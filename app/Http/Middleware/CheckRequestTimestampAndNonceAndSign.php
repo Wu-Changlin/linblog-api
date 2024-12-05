@@ -91,7 +91,7 @@ class CheckRequestTimestampAndNonceAndSign
         // 不存在
         if (!$nonce_value) {
             #设置过期时间为60秒
-            RedisBase::setex($request_params_nonce,self::$limit_time,$request_params_nonce);
+            RedisBase::setex($request_params_nonce,self::$limit_time,'nonce');
             // RedisBase::expire($visitor_ip, ); //给key值设置生存时间
         } 
         //存在
