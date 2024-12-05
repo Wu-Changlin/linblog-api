@@ -69,12 +69,12 @@ class AddOrEditUserRequest extends FormRequest
             'user_id' => 'required|regex:/^[0-9]+$/',
             'nick_name' => 'required|max:10|regex:/^[\x{4e00}-\x{9fa5}a-zA-Z0-9_]+$/u',
             'email' => 'required|regex:/^\s*\w+(?:\.{0,1}[\w-]+)*@[a-zA-Z0-9]+(?:[-.][a-zA-Z0-9]+)*\.[a-zA-Z]+\s*$/',
-            'avatar' =>['required','regex: /^data:image\/(?:png|jpeg|webp|gif|svg|x-icon);base64,(([A-Za-z0-9+\/]{4})*([A-Za-z0-9+\/]{4}|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{2}==))$/'],
+            'avatar' =>['required','regex: /^data:image\/(?:jpeg|webp|gif|svg|x-icon|png);base64,(([A-Za-z0-9+\/]{4})*([A-Za-z0-9+\/]{4}|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{2}==))$/'],
             'password' => 'required|regex:/^[0-9a-fA-F]{64}$/',
             'confirm_password' =>  'required|regex:/^[0-9a-fA-F]{64}$/',
             'role' => 'required|regex:/^[0-9]+$/',
             'is_enable' => 'required|regex:/^[0-9]+$/',
-            'action' => 'required|regex:/^[a-z]+$/',
+            'action' => ['required','regex:/^(add|edit)$/'],
         ];
         return $rules;
 

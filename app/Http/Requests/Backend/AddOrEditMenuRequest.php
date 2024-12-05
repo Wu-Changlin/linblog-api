@@ -97,8 +97,7 @@ _：一个下划线。
             'business_level' => 'required|regex:/^[0-9]+$/',
             'parent_id' => 'required|regex:/^[0-9]+$/',
             'is_pulled' => 'required|regex:/^[0-9]+$/',
-            'action' => 'required|regex:/^[a-z]+$/',
-
+            'action' => ['required','regex:/^(add|edit)$/'],
         ];
         return $rules;
 
