@@ -8,10 +8,10 @@ use App\Models\BaseModel;
 use Illuminate\Support\Facades\Schema; //‌Schema facade‌是Laravel框架中用于创建和操作数据库结构的一个功能强大的工具
 
 
-class Menu extends BaseModel
+class Article extends BaseModel
 {
 
-    protected $primaryKey = 'menu_id'; //创建的表字段中主键ID的名称不为id，则需要通过 $primaryKey 来指定一下设定主键id
+    protected $primaryKey = 'article_id'; //创建的表字段中主键ID的名称不为id，则需要通过 $primaryKey 来指定一下设定主键id
     protected $guarded = []; //  guarded 属性用于定义不可以批量赋值的属性（字段），也就是需要保护的属性
     //  fillable 属性用于定义可以批量赋值的属性（字段），也就是允许用户通过模型的 create 或 fill 方法来设置的属性。
     // protected $fillable = [
@@ -33,7 +33,7 @@ class Menu extends BaseModel
         // 获取表名
         $table_name = $model->getTable();
 
-        // 获取所有字段名，示例： $get_table_all_field_names_res= [  0 => "menu_id",1 => "menu_name]
+        // 获取所有字段名，示例： $get_table_all_field_names_res= [  0 => "Article",1 => "menu_name]
         $get_table_all_field_names_res = Schema::getColumnListing($table_name);
 
 
@@ -42,8 +42,8 @@ class Menu extends BaseModel
         if (is_array($get_table_all_field_names_res) &&  isset($get_table_all_field_names_res) && !empty($get_table_all_field_names_res)) {
             /* 
                 使用array_flip()函数将值转换为键,示例： 
-                原 $get_table_all_field_names_res= [  0 => "menu_id",1 => "menu_name]
-                转换为 $results_array= [   "menu_id"=>0, "menu_name"=>1]
+                原 $get_table_all_field_names_res= [  0 => "Article",1 => "menu_name]
+                转换为 $results_array= [   "Article"=>0, "menu_name"=>1]
                 */
             $results_array = array_flip($get_table_all_field_names_res);
             return $results_array;
@@ -83,7 +83,7 @@ class Menu extends BaseModel
         }
 
         $get_data_by_condition = self::where($where_data)
-            ->select('menu_id', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
+            ->select('Article', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
             ->get();
 
 
@@ -140,7 +140,7 @@ class Menu extends BaseModel
         }
             //返回 有值paginate对象有查询结果，没有值paginate对象没有有查询结果
             $get_data_by_condition = self::where($where_data)
-                ->select('menu_id', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
+                ->select('Article', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
                 ->paginate($current_page_limit, ['*'], 'page', $current_page);
         }
         // 没有查询条件
@@ -150,7 +150,7 @@ class Menu extends BaseModel
             return false;
         }
             //返回 有值paginate对象有查询结果，没有值paginate对象没有有查询结果
-            $get_data_by_condition = self::select('menu_id', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
+            $get_data_by_condition = self::select('Article', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
                 ->paginate($current_page_limit, ['*'], 'page', $current_page);
         }
 
@@ -195,9 +195,9 @@ class Menu extends BaseModel
         // 初始化查询条件  多条件查询？
         $where_data = [];
 
-        // 当$allow_data['menu_id'] 已定义，且 $allow_data['menu_id']不为空时，进入 true 分支
-        if (isset($allow_data['menu_id']) && !empty($allow_data['menu_id'])) {
-            $menu_id_where = ['menu_id', '=',  $allow_data['menu_id']];
+        // 当$allow_data['Article'] 已定义，且 $allow_data['Article']不为空时，进入 true 分支
+        if (isset($allow_data['Article']) && !empty($allow_data['Article'])) {
+            $menu_id_where = ['Article', '=',  $allow_data['Article']];
 
             // 将一个数组嵌套到另一个数组
             $where_data[] = $menu_id_where;
@@ -210,7 +210,7 @@ class Menu extends BaseModel
         }
 
         // ->get查到数据返回Eloquent 集合，查不到返回Eloquent 空集合
-        $get_current_edit_menu_info_condition = self::where($where_data)->select('menu_id', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')->first();
+        $get_current_edit_menu_info_condition = self::where($where_data)->select('Article', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')->first();
 
 
         // 有值继续执行
@@ -246,9 +246,9 @@ class Menu extends BaseModel
         // 初始化查询条件  多条件查询？
         $where_data = [];
 
-        // 当$allow_data['menu_id'] 已定义，且 $allow_data['menu_id']不为空时，进入 true 分支
-        if (isset($allow_data['menu_id']) && !empty($allow_data['menu_id'])) {
-            $menu_id_where = ['menu_id', '=',  $allow_data['menu_id']];
+        // 当$allow_data['Article'] 已定义，且 $allow_data['Article']不为空时，进入 true 分支
+        if (isset($allow_data['Article']) && !empty($allow_data['Article'])) {
+            $menu_id_where = ['Article', '=',  $allow_data['Article']];
 
             // 将一个数组嵌套到另一个数组
             $where_data[] = $menu_id_where;
@@ -285,7 +285,7 @@ class Menu extends BaseModel
             return false;
         }
         // ->first查到数据返回Eloquent 对象，查不到返回null
-        $is_menu_data_exist_res = self::where($where_data)->select('menu_id')->first();
+        $is_menu_data_exist_res = self::where($where_data)->select('Article')->first();
         if ($is_menu_data_exist_res) {
             return true;
         }
@@ -383,7 +383,7 @@ class Menu extends BaseModel
         $allow_data = $data;
 
         // 判断菜单数据是否存在
-        $is_menu_data_exist_res = self::isMenuDataExist(['menu_id' => $allow_data['menu_id']]);
+        $is_menu_data_exist_res = self::isMenuDataExist(['Article' => $allow_data['Article']]);
         // 如果不存在，那么直接返回false
         if (empty($is_menu_data_exist_res)) {
             return '没有该菜单数据!';
@@ -392,7 +392,7 @@ class Menu extends BaseModel
         //查询该id信息
         // 获取数组的所有键
         $select_keys_array = array_keys($allow_data);
-        $current_id_res = self::find($allow_data['menu_id'], $select_keys_array);
+        $current_id_res = self::find($allow_data['Article'], $select_keys_array);
         $current_id_info = $current_id_res->toArray(); //集合转数组
 
         //判断字段是否需要修改
@@ -403,7 +403,7 @@ class Menu extends BaseModel
 
 
         //使用update方法更新数据 ,update 方法需要一个表示应该更新的列的列和值对数组。 update 方法返回受影响的行数。
-        $edit_res = self::where('menu_id', $allow_data['menu_id'])->update($allow_data);
+        $edit_res = self::where('Article', $allow_data['Article'])->update($allow_data);
 
         // 编辑成功
         if ($edit_res) {

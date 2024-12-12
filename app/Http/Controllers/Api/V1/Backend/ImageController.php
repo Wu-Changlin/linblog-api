@@ -11,8 +11,8 @@ use Illuminate\Http\Request;
 use App\Http\Requests\Backend\AddOrEditArticleRequest;
 use App\Http\Requests\Backend\PaginationRequest;
 
-// 博文模块
-class ArticleController extends Controller
+// 图片模块
+class ImageController extends Controller
 {
 
     // 获取页面框架数据，表格头、下拉用户、单选框、复选框等数据
