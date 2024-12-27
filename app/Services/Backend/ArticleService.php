@@ -37,7 +37,7 @@ class ArticleService
         return 0;
     }
     
-    $get_query_input_data_res=UserModels::getPageDataByCondition($data,$current_page,$current_page_limit);
+    $get_query_input_data_res=ArticleModels::getPageDataByCondition($data,$current_page,$current_page_limit);
 
     // 获取成功 返回菜单信息 
     if ($get_query_input_data_res) {
@@ -59,7 +59,7 @@ class ArticleService
             return 0;
         }
         
-        $get_menu_list_page_data_res=UserModels::getPageDataByCondition($data,$current_page,$current_page_limit);
+        $get_menu_list_page_data_res=ArticleModels::getPageDataByCondition($data,$current_page,$current_page_limit);
 
         // 获取成功 返回菜单信息 
         if ($get_menu_list_page_data_res) {
@@ -82,7 +82,7 @@ class ArticleService
         if (empty($data)) { //如果$data为空直接返回0
             return 0;
         }
-        $get_current_user_info_res = UserModels::getCurrentUserInfo($data); //执行查询
+        $get_current_user_info_res = ArticleModels::getCurrentUserInfo($data); //执行查询
        
         // 添加成功 返回true
         if($get_current_user_info_res){
@@ -108,7 +108,7 @@ class ArticleService
 //   `account_status`账号状态 0：默认，1：正常，2：获取过多验证码锁定，3：多次输入错误密码锁定，4：销号',
 
         $data['account_status']=1;
-        $add_user_res = UserModels::addUser($data); //执行新增
+        $add_user_res = ArticleModels::addUser($data); //执行新增
 
         // 添加成功 返回true
         if($add_user_res===true){
@@ -133,7 +133,7 @@ class ArticleService
     //   `account_status`账号状态 0：默认，1：正常，2：获取过多验证码锁定，3：多次输入错误密码锁定，4：销号',
     
 
-            $edit_user_res = UserModels::editUser($data,$access_token); //执行新增
+            $edit_user_res = ArticleModels::editUser($data,$access_token); //执行新增
             
 
             // 添加成功 返回true
@@ -157,7 +157,7 @@ class ArticleService
             return 0;
         }
 
-        $user_login_res = UserModels::userLogin($data);
+        $user_login_res = ArticleModels::userLogin($data);
   // 添加成功 返回true
   if ($user_login_res === true) {
     return true;
@@ -178,7 +178,7 @@ return  $error_msg;
         if (empty($data)) { //如果$data为空直接返回0
             return 0;
         }
-        $is_login_res = UserModels::getUserLoginStatus($data);
+        $is_login_res = ArticleModels::getUserLoginStatus($data);
              // 添加成功 返回true
              if ($is_login_res === true) {
                 return true;
@@ -201,7 +201,7 @@ return  $error_msg;
             return 0;
         }
 
-        $user_logout_res = UserModels::userLogout(); //执行退出
+        $user_logout_res = ArticleModels::userLogout(); //执行退出
          // 添加成功 返回true
          if ($user_logout_res === true) {
             return true;
@@ -226,7 +226,7 @@ return  $error_msg;
         if (empty($data)) { //如果$data为空直接返回0
             return 0;
         }
-        $is_nick_name_or_email_user_exist_res = UserModels::isNickNameOrEmailUserExist($data); //是否存在
+        $is_nick_name_or_email_user_exist_res = ArticleModels::isNickNameOrEmailUserExist($data); //是否存在
 
         // 添加成功 返回true
         if ($is_nick_name_or_email_user_exist_res === true) {
@@ -252,7 +252,7 @@ return  $error_msg;
             return 0;
         }
 
-        $verify_account_res = UserModels::verifyAccount($data); //是否正常
+        $verify_account_res = ArticleModels::verifyAccount($data); //是否正常
         
 
         
