@@ -64,6 +64,11 @@ class AddOrEditTagRequest extends FormRequest
         示例规则：至少1个中文或字母，可以包含数字、半角全角符号和特殊符号
     */    
     
+    /*
+只包含中文
+                /^[\x{4e00}-\x{9fa5}]+$/u
+    
+    */
         $rules =  [
             'tag_id' => 'required|regex:/^[0-9]+$/',
             'menu_id' => 'required|regex:/^[0-9]+$/',
@@ -71,7 +76,7 @@ class AddOrEditTagRequest extends FormRequest
             'menu_title' => [
                 'required',
                 'max:100',
-                'regex:[\u4e00-\u9fa5]'
+                'regex:/^[\x{4e00}-\x{9fa5}]+$/u'
             ],
             
             'tag_name' => [
@@ -80,19 +85,19 @@ class AddOrEditTagRequest extends FormRequest
                 'regex:/^[\p{L}\p{Han}\p{P}\p{S}]+$/u'
             ],
 
+
             'tag_keywords' =>[
                 'required',
-                'max:100',
-            
+                'max:100'
         ],
 
         'tag_description' =>[
                 'required',
-                'max:100',
+                'max:100'
             
         ],
             'is_pulled' => 'required|regex:/^[0-9]+$/',
-            'action' => ['required','regex:/^(add|edit)$/'],
+            'action' => ['required','regex:/^(add|edit)$/']
         ];
         return $rules;
 

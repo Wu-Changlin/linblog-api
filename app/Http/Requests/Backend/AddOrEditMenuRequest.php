@@ -91,7 +91,7 @@ _：一个下划线。
         $rules =  [
             'menu_id' => 'required|regex:/^[0-9]+$/',
             'menu_name' => 'required|regex:/^[a-z]+([_][a-z]+)?$/',
-            'menu_title' => 'required:[\u4e00-\u9fa5]',
+            'menu_title' => 'required|regex:[\u4e00-\u9fa5]',
             'menu_path' => 'required|regex:/^\/[a-z]+(\/[a-z]+_[a-z]+)?$/',
             'icon' => 'required|regex:/^[a-z]+(_[a-z]+)?$/',
             'business_level' => 'required|regex:/^[0-9]+$/',

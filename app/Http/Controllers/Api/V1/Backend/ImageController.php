@@ -481,7 +481,7 @@ class ImageController extends Controller
         $add_or_edit_article_data['menu_id'] = $request_params_all_data['menu_id'];
         $add_or_edit_article_data['article_content'] = $request_params_all_data['article_content'];
 
-        $add_or_edit_article_data['is_pulled'] = $request_params_all_data['is_enable'];
+        $add_or_edit_article_data['is_pulled'] = $request_params_all_data['is_pulled'];
 
         //执行添加
         if ($request_params_all_data['action'] === 'add') {
