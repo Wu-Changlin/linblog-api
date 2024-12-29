@@ -35,11 +35,11 @@ class ImageController extends Controller
         ];
         $options_role_data = [
             [
-                "is_pulled" => 1,
+                "is_pull" => 1,
                 "label" => "普通用户"
             ],
             [
-                "is_pulled" => 2,
+                "is_pull" => 2,
                 "label" => "管理员"
             ]
         ];
@@ -466,7 +466,7 @@ class ImageController extends Controller
 //   "author_name": "作者",
 //   "menu_id": 2,
 //   "article_content": "文章内容",
-//   "is_pulled": 0,
+//   "is_pull": 0,
 //   "action": "add",
         $request_params_all_data = $request->all();
 
@@ -481,7 +481,7 @@ class ImageController extends Controller
         $add_or_edit_article_data['menu_id'] = $request_params_all_data['menu_id'];
         $add_or_edit_article_data['article_content'] = $request_params_all_data['article_content'];
 
-        $add_or_edit_article_data['is_pulled'] = $request_params_all_data['is_pulled'];
+        $add_or_edit_article_data['is_pull'] = $request_params_all_data['is_pull'];
 
         //执行添加
         if ($request_params_all_data['action'] === 'add') {
@@ -513,7 +513,7 @@ class ImageController extends Controller
         }
 
         // 成功情景
-        if (is_array($add_or_edit_user_result)) {
+        if (is_array($add_or_edit_user_result)  || $add_or_edit_user_result===true ) {
             sendMSG(200, $add_or_edit_user_result, $request_params_all_data['action'] . $modular_name . '成功！');
         }
 

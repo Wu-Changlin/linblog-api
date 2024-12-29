@@ -28,18 +28,18 @@ class MenuController extends Controller
             ["prop" => "menu_path", "label" => "路由Path", "key" => "menu_path"],
             ["prop" => "business_level", "label" => "业务层面", "key" => "business_level"],
             ["prop" => "parent_id", "label" => "父节点", "key" => "parent_id"],
-            ["prop" => "is_pulled", "label" => "下架", "key" => "is_pulled"],
+            ["prop" => "is_pull", "label" => "下架", "key" => "is_pull"],
             ["prop" => "created_time", "label" => "创建时间", "key" => "created_time"],
             ["prop" => "update_time", "label" => "更新时间", "key" => "update_time"],
             ["prop" => "delete_time", "label" => "删除时间", "key" => "delete_time"]
         ];
-        $is_pulled_data = [
+        $is_pull_data = [
             [
-                "is_pulled" => 0,
+                "is_pull" => 0,
                 "label" => "否"
             ],
             [
-                "is_pulled" => 1,
+                "is_pull" => 1,
                 "label" => "是"
             ]
         ];
@@ -53,11 +53,11 @@ class MenuController extends Controller
                 "label" => "后台"
             ]
         ];
-        //is_pulled  '是否下架	0：默认， 1： 是 	 ，2：否',
+        //is_pull  '是否下架	0：默认， 1： 是 	 ，2：否',
 
         // 返回 条件为空返回0； 有数据返回查询结果 ； 空数据，返回[]。用于编辑和添加时选项值
-        //    $where_data= toConditionsArray(["is_pulled"=>2]);
-        $options_parent_id_data_result = MenuService::getIsNoPulledData([["is_pulled", '=', 2]]);
+        //    $where_data= toConditionsArray(["is_pull"=>2]);
+        $options_parent_id_data_result = MenuService::getIsNoPulledData([["is_pull", '=', 2]]);
 
         // 如果查询条件为空直接返回 0
         if ($options_parent_id_data_result === 0) {
@@ -66,7 +66,7 @@ class MenuController extends Controller
 
         // 组转数据
         $get_page_layout_data_result['table_header'] = $table_header;
-        $get_page_layout_data_result['is_pulled_data'] = $is_pulled_data;
+        $get_page_layout_data_result['is_pull_data'] = $is_pull_data;
         $get_page_layout_data_result['options_business_level_data'] = $options_business_level_data;
         $get_page_layout_data_result['options_parent_id_data'] = $options_parent_id_data_result;
 
@@ -431,7 +431,7 @@ class MenuController extends Controller
         // "icon": "menus",
         // "business_level": 2,
         // "parent_id": 0,
-        // "is_pulled": 0,
+        // "is_pull": 0,
         // "action": "add",
         $request_params_all_data = $request->all();
 
@@ -442,7 +442,7 @@ class MenuController extends Controller
         $add_or_edit_menu_data['icon'] = $request_params_all_data['icon'];
         $add_or_edit_menu_data['business_level'] = $request_params_all_data['business_level'];
         $add_or_edit_menu_data['parent_id'] = $request_params_all_data['parent_id'];
-        $add_or_edit_menu_data['is_pulled'] = $request_params_all_data['is_pulled'];
+        $add_or_edit_menu_data['is_pull'] = $request_params_all_data['is_pull'];
 
         // 当$add_or_edit_menu_data['menu_keywords'] 已定义，且 $add_or_edit_menu_data['menu_keywords']不为空时，进入 true 分支
         if (isset($add_or_edit_menu_data['menu_keywords']) && !empty($add_or_edit_menu_data['menu_keywords'])) {
@@ -477,7 +477,7 @@ class MenuController extends Controller
         }
 
         // 成功情景
-        if (is_array($add_or_edit_menu_result)) {
+        if (is_array($add_or_edit_menu_result) || $add_or_edit_menu_result===true) {
             sendMSG(200, $add_or_edit_menu_result, $request_params_all_data['action'] . $modular_name . '成功！');
         }
 

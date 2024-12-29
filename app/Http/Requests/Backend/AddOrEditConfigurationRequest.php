@@ -90,7 +90,7 @@ class AddOrEditConfigurationRequest extends FormRequest
                 'required',
                 'regex:/^[\p{L}\p{Han}\p{P}\p{S}]+$/u'
             ],
-            'is_pulled' => 'required|regex:/^[0-9]+$/',
+            'is_pull' => 'required|regex:/^[0-9]+$/',
             'action' => ['required','regex:/^(add|edit)$/'],
         ];
         return $rules;
@@ -128,8 +128,8 @@ class AddOrEditConfigurationRequest extends FormRequest
             'author_name.required'=>'作者不能为空',
             'author_name.regex'=>'作者格式错误',
 
-            'is_pulled.required'=>'下架不能为空',
-            'is_pulled.required'=>'下架格式错误',
+            'is_pull.required'=>'下架不能为空',
+            'is_pull.required'=>'下架格式错误',
 
 
             'action.required'=>'操作代码不能为空',

@@ -41,11 +41,11 @@ class ConfigurationController extends Controller
         ];
         $options_role_data = [
             [
-                "is_pulled" => 1,
+                "is_pull" => 1,
                 "label" => "普通用户"
             ],
             [
-                "is_pulled" => 2,
+                "is_pull" => 2,
                 "label" => "管理员"
             ]
         ];
@@ -514,7 +514,8 @@ class ConfigurationController extends Controller
         }
 
         // 成功情景
-        if (is_array($add_or_edit_user_result)) {
+        if (is_array($add_or_edit_user_result)  || $add_or_edit_user_result===true ) {
+
             sendMSG(200, $add_or_edit_user_result, $request_params_all_data['action'] . $modular_name . '成功！');
         }
 

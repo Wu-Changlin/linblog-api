@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api\V1\Backend;
 use App\Http\Controllers\Controller;
 
 use App\Services\Backend\TagService;
+use App\Services\Backend\MenuService;
+
+
 use App\Services\JsonWebTokenService;
 
 use Illuminate\Http\Request;
@@ -34,11 +37,11 @@ class TagController extends Controller
         ];
         $options_role_data = [
             [
-                "is_pulled" => 1,
+                "is_pull" => 1,
                 "label" => "普通标签"
             ],
             [
-                "is_pulled" => 2,
+                "is_pull" => 2,
                 "label" => "管理员"
             ]
         ];
@@ -421,12 +424,11 @@ class TagController extends Controller
         // "tag_name": "标签名称",
         // "tag_keywords": "关键词",
         // "tag_description": "描述",
-        // "is_pulled": 1,
+        // "is_pull": 1,
         // "action": "add",
        
         $request_params_all_data = $request->all();
 
-       
         // 拼接添加标签数据
 
         $add_or_edit_tag_data['tag_id'] = $request_params_all_data['tag_id'];
@@ -434,8 +436,14 @@ class TagController extends Controller
         $add_or_edit_tag_data['tag_name'] = $request_params_all_data['tag_name'];
         $add_or_edit_tag_data['tag_keywords'] = $request_params_all_data['tag_keywords'];
         $add_or_edit_tag_data['tag_description'] = $request_params_all_data['tag_description'];
-        $add_or_edit_tag_data['is_pulled'] = $request_params_all_data['is_pulled'];
+        $add_or_edit_tag_data['is_pull'] = $request_params_all_data['is_pull'];
        
+        $validation_menu_info_result= MenuService::validationMenuInfo(['menu_id'=> $add_or_edit_tag_data['menu_id']]);
+        if(empty($validation_menu_info_result)){
+            sendErrorMSG(403, '菜单不存在！');
+
+        }
+
         //执行添加
         if ($request_params_all_data['action'] === 'add') {
             // 添加  返回  true 成功  ， 错误消息或false 失败
@@ -445,28 +453,14 @@ class TagController extends Controller
         //执行编辑
         if ($request_params_all_data['action'] === 'edit') {
             
-                 // 使用Request实例的header方法获取Authorization标头
-                 $authorizationHeader = $request->header('Authorization');
-
-                 // $authorizationHeader =$request->input('temporary_token');
-     
-                 // 假设你从HTTP头部获取了Authorization头部
-                 // echo 'authorizationHeader:'.$authorizationHeader;
-                 // 解析Authorization头部，获取token
-                 if ($authorizationHeader) {
-                     // 假设token前缀是Bearer
-                     $token_data = trim(str_ireplace('Bearer ', '', $authorizationHeader));
-                     $add_or_edit_tag_data['tag_id'] = $request_params_all_data['tag_id'];
-                     // 添加  返回  true 成功  ， 错误消息或false 失败
-                     $add_or_edit_tag_result = TagService::editTag($add_or_edit_tag_data,$token_data);
-                    }
-                    sendErrorMSG(403, '没有访问令牌！');
+              
+                     $add_or_edit_tag_result = TagService::editTag($add_or_edit_tag_data);
 
            
         }
 
         // 成功情景
-        if (is_array($add_or_edit_tag_result)) {
+        if (is_array($add_or_edit_tag_result) || $add_or_edit_tag_result===true) {
             sendMSG(200, $add_or_edit_tag_result, $request_params_all_data['action'] . $modular_name . '成功！');
         }
 

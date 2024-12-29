@@ -83,7 +83,7 @@ class Article extends BaseModel
         }
 
         $get_data_by_condition = self::where($where_data)
-            ->select('Article', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
+            ->select('Article', 'business_level', 'icon', 'is_pull', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
             ->get();
 
 
@@ -140,7 +140,7 @@ class Article extends BaseModel
         }
             //返回 有值paginate对象有查询结果，没有值paginate对象没有有查询结果
             $get_data_by_condition = self::where($where_data)
-                ->select('Article', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
+                ->select('Article', 'business_level', 'icon', 'is_pull', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
                 ->paginate($current_page_limit, ['*'], 'page', $current_page);
         }
         // 没有查询条件
@@ -150,7 +150,7 @@ class Article extends BaseModel
             return false;
         }
             //返回 有值paginate对象有查询结果，没有值paginate对象没有有查询结果
-            $get_data_by_condition = self::select('Article', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
+            $get_data_by_condition = self::select('Article', 'business_level', 'icon', 'is_pull', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')
                 ->paginate($current_page_limit, ['*'], 'page', $current_page);
         }
 
@@ -210,7 +210,7 @@ class Article extends BaseModel
         }
 
         // ->get查到数据返回Eloquent 集合，查不到返回Eloquent 空集合
-        $get_current_edit_menu_info_condition = self::where($where_data)->select('Article', 'business_level', 'icon', 'is_pulled', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')->first();
+        $get_current_edit_menu_info_condition = self::where($where_data)->select('Article', 'business_level', 'icon', 'is_pull', 'menu_description', 'menu_keywords', 'menu_name', 'menu_path', 'menu_title')->first();
 
 
         // 有值继续执行

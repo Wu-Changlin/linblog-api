@@ -169,5 +169,52 @@ class MenuService
 
 
 
-    // 其他用户相关的服务方法
+      // 校验菜单信息(是否下架)  返回  true 通过   ， false 失败
+      public static function validationMenuInfo($data){
+        if (empty($data)) { //如果$data为空直接返回
+            return 0;
+        }
+
+        $get_current_menu_info_res = MenuModels::getCurrentMenuInfo($data); //执行新增
+
+        // 有菜单信息 
+        if ($get_current_menu_info_res) {
+            //   `is_pull`  '0' COMMENT '是否下架	0：默认， 1： 是 	 ，2：否',
+            if($get_current_menu_info_res['is_pull']===2){
+                return true;
+            }
+
+            
+        }
+
+        //返回false 失败
+      
+        return  false;
+
+
+    }
+
+     // 获取当前菜单id信息  返回  true 菜单信息   ， false 失败
+     public static function getCurrentMenuIdInfo($data)
+     {
+ 
+         if (empty($data)) { //如果$data为空直接返回
+             return 0;
+         }
+ 
+         $get_current_edit_menu_info_res = MenuModels::getCurrentMenuInfo($data); //执行新增
+ 
+         // 获取成功 返回菜单信息 
+         if ($get_current_edit_menu_info_res) {
+ 
+             return $get_current_edit_menu_info_res;
+         }
+ 
+         //返回错误消息或false 失败
+         $error_msg = $get_current_edit_menu_info_res;
+ 
+         return  $error_msg;
+        
+     }
+
 }

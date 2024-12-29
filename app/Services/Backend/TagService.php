@@ -82,17 +82,17 @@ class TagService
         if (empty($data)) { //如果$data为空直接返回0
             return 0;
         }
-        $get_current_user_info_res = TagModels::getCurrentTagInfo($data); //执行查询
+        $get_current_tag_info_res = TagModels::getCurrentTagInfo($data); //执行查询
        
         // 添加成功 返回true
-        if($get_current_user_info_res){
+        if($get_current_tag_info_res){
         
-            return $get_current_user_info_res;
+            return $get_current_tag_info_res;
         }
 
 
         //返回错误消息或false 失败
-        $error_msg = $get_current_user_info_res;
+        $error_msg = $get_current_tag_info_res;
 
         return  $error_msg;
     }
@@ -105,18 +105,16 @@ class TagService
         if (empty($data)) { //如果$data为空直接返回0
             return 0;
         }
-//   `account_status`账号状态 0：默认，1：正常，2：获取过多验证码锁定，3：多次输入错误密码锁定，4：销号',
 
-        $data['account_status']=1;
-        $add_user_res = TagModels::addTag($data); //执行新增
+        $add_tag_res = TagModels::addTag($data); //执行新增
 
         // 添加成功 返回true
-        if($add_user_res===true){
+        if($add_tag_res===true){
             return true;
         }
 
         //返回错误消息或false 失败
-        $error_msg = $add_user_res;
+        $error_msg = $add_tag_res;
 
         return  $error_msg;
 
@@ -124,25 +122,24 @@ class TagService
 
         // 编辑用户  返回  true 成功  ， 错误消息或false 失败
         // 如果修改邮箱、昵称、密码中其一，那么退出登录、访问令牌和刷新令牌加入黑名单
-        public static function editTag($data,$access_token)
+        public static function editTag($data)
         {
     
             if (empty($data)) { //如果$data为空直接返回0
                 return 0;
             }
-    //   `account_status`账号状态 0：默认，1：正常，2：获取过多验证码锁定，3：多次输入错误密码锁定，4：销号',
-    
+ 
 
-            $edit_user_res = TagModels::editTag($data,$access_token); //执行新增
+            $edit_tag_res = TagModels::editTag($data); //执行新增
             
 
             // 添加成功 返回true
-            if($edit_user_res===true){
+            if($edit_tag_res===true){
                 return true;
             }
     
             //返回错误消息或false 失败
-            $error_msg = $edit_user_res;
+            $error_msg = $edit_tag_res;
     
             return  $error_msg;
     
@@ -151,20 +148,20 @@ class TagService
 
 
 // 用户登录
-    public static function userLogin($data)
+    public static function tagLogin($data)
     {
         if (empty($data)) { //如果$data为空直接返回0
             return 0;
         }
 
-        $user_login_res = TagModels::userLogin($data);
+        $tag_login_res = TagModels::tagLogin($data);
   // 添加成功 返回true
-  if ($user_login_res === true) {
+  if ($tag_login_res === true) {
     return true;
 }
 
 //返回错误消息或false 失败
-$error_msg = $user_login_res;
+$error_msg = $tag_login_res;
 
 return  $error_msg;
 
@@ -195,20 +192,20 @@ return  $error_msg;
      * 管理员退出
      * @return 返回登录页
      */
-    public static function userLogout($data)
+    public static function tagLogout($data)
     {
         if (empty($data)) { //如果$data为空直接返回0
             return 0;
         }
 
-        $user_logout_res = TagModels::userLogout(); //执行退出
+        $tag_logout_res = TagModels::tagLogout(); //执行退出
          // 添加成功 返回true
-         if ($user_logout_res === true) {
+         if ($tag_logout_res === true) {
             return true;
         }
 
         //返回错误消息或false 失败
-        $error_msg = $user_logout_res;
+        $error_msg = $tag_logout_res;
 
         return  $error_msg;
     }
@@ -226,15 +223,15 @@ return  $error_msg;
         if (empty($data)) { //如果$data为空直接返回0
             return 0;
         }
-        $is_nick_name_or_email_user_exist_res = TagModels::isNickNameOrEmailTagExist($data); //是否存在
+        $is_nick_name_or_email_tag_exist_res = TagModels::isNickNameOrEmailTagExist($data); //是否存在
 
         // 添加成功 返回true
-        if ($is_nick_name_or_email_user_exist_res === true) {
+        if ($is_nick_name_or_email_tag_exist_res === true) {
             return true;
         }
 
         //返回错误消息或false 失败
-        $error_msg = $is_nick_name_or_email_user_exist_res;
+        $error_msg = $is_nick_name_or_email_tag_exist_res;
 
         return  $error_msg;
         

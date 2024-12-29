@@ -96,7 +96,7 @@ _：一个下划线。
             'icon' => 'required|regex:/^[a-z]+(_[a-z]+)?$/',
             'business_level' => 'required|regex:/^[0-9]+$/',
             'parent_id' => 'required|regex:/^[0-9]+$/',
-            'is_pulled' => 'required|regex:/^[0-9]+$/',
+            'is_pull' => 'required|regex:/^[0-9]+$/',
             'action' => ['required','regex:/^(add|edit)$/'],
         ];
         return $rules;
@@ -129,8 +129,8 @@ _：一个下划线。
             'parent_id.required'=>'父节点不能为空',
             'parent_id.regex'=>'父节点码格式错误',
 
-            'is_pulled.required'=>'下架不能为空',
-            'is_pulled.regex'=>'下架格式错误',
+            'is_pull.required'=>'下架不能为空',
+            'is_pull.regex'=>'下架格式错误',
 
             'action.required'=>'操作代码不能为空',
             'action.regex'=>'操作代码格式错误',

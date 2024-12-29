@@ -96,7 +96,7 @@ class AddOrEditTagRequest extends FormRequest
                 'max:100'
             
         ],
-            'is_pulled' => 'required|regex:/^[0-9]+$/',
+            'is_pull' => 'required|regex:/^[0-9]+$/',
             'action' => ['required','regex:/^(add|edit)$/']
         ];
         return $rules;
@@ -128,8 +128,8 @@ class AddOrEditTagRequest extends FormRequest
             'tag_description.required'=>'标签描述不能为空',
             'tag_description.max'=>'标签描述过长',
 
-            'is_pulled.required'=>'下架不能为空',
-            'is_pulled.required'=>'下架格式错误',
+            'is_pull.required'=>'下架不能为空',
+            'is_pull.required'=>'下架格式错误',
 
             'action.required'=>'操作代码不能为空',
             'action.regex'=>'操作代码格式错误',

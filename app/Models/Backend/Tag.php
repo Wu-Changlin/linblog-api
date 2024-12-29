@@ -96,13 +96,13 @@ class Tag extends BaseModel
           if (isset($where_data) && !empty($where_data)) {
               //返回 有值paginate对象有查询结果，没有值paginate对象没有有查询结果
               $get_data_by_condition = self::where($where_data)
-                  ->select('tag_id', 'nick_name', 'avatar', 'email', 'is_enable', 'role', 'account_status', 'login_ip')
+                  ->select('tag_id', 'tag_name', 'avatar', 'email', 'is_enable', 'role', 'account_status', 'login_ip')
                   ->paginate($current_page_limit, ['*'], 'page', $current_page);
           }
           // 没有查询条件
           if (empty($where_data)) {
               //返回 有值paginate对象有查询结果，没有值paginate对象没有有查询结果
-              $get_data_by_condition = self::select('tag_id', 'nick_name', 'avatar', 'email', 'is_enable', 'role', 'account_status', 'login_ip')
+              $get_data_by_condition = self::select('tag_id', 'tag_name', 'avatar', 'email', 'is_enable', 'role', 'account_status', 'login_ip')
                   ->paginate($current_page_limit, ['*'], 'page', $current_page);
           }
   
@@ -149,21 +149,14 @@ class Tag extends BaseModel
         // 初始化查询条件
         $where_data = [];
 
-        // 当$allow_data['nick_name'] 已定义，且 $allow_data['nick_name']不为空时，进入 true 分支
-        if (isset($allow_data['nick_name']) && !empty($allow_data['nick_name'])) {
-            $nick_name_where = ['nick_name', '=',  $allow_data['nick_name']];
+        // 当$allow_data['tag_name'] 已定义，且 $allow_data['tag_name']不为空时，进入 true 分支
+        if (isset($allow_data['tag_name']) && !empty($allow_data['tag_name'])) {
+            $tag_name_where = ['tag_name', '=',  $allow_data['tag_name']];
             // 将一个数组嵌套到另一个数组
-            $where_data[] = $nick_name_where;
+            $where_data[] = $tag_name_where;
         }
 
-        // 当$allow_data['email'] 已定义，且 $allow_data['email']不为空时，进入 true 分支
-        if (isset($allow_data['email']) && !empty($allow_data['email'])) {
-            $email_where = ['email', '=',  $allow_data['email']];
-
-            // 将一个数组嵌套到另一个数组
-            $where_data[] =$email_where;
-        }
-
+       
 
         // 当$allow_data['tag_id'] 已定义，且 $allow_data['tag_id']不为空时，进入 true 分支
         if (isset($allow_data['tag_id']) && !empty($allow_data['tag_id'])) {
@@ -176,10 +169,9 @@ class Tag extends BaseModel
          if(self::isIssetOrEmptyWhereData($where_data)){
             return false;
         }
+        
 
-        $tag_res = self::where($where_data)
-        ->select('tag_id','nick_name','avatar','email','email_verification_code','role','account_status','login_ip','is_enable','is_logged_in','last_login_time')
-        ->first();
+        $tag_res = self::where($where_data)->select('tag_id','menu_id','tag_name','tag_keywords','tag_description','is_pull')->first();
         
         if ($tag_res) {
            
@@ -212,8 +204,8 @@ class Tag extends BaseModel
         // 初始化查询条件  多条件查询？
         $where_data = [];
         
-
-
+       
+       
         // 当$allow_data['tag_name'] 已定义，且 $allow_data['tag_name']不为空时，进入 true 分支
         if (isset($allow_data['tag_name']) && !empty($allow_data['tag_name'])) {
             $tag_name_where = ['tag_name', '=',  $allow_data['tag_name']];
@@ -221,16 +213,25 @@ class Tag extends BaseModel
             // 将一个数组嵌套到另一个数组
             $where_data[] = $tag_name_where;
         }
+      
+        // 当$allow_data['tag_id'] 已定义，且 $allow_data['tag_id']不为空时，进入 true 分支
+        if (isset($allow_data['tag_id']) && !empty($allow_data['tag_id'])) {
+            $tag_id_where = ['tag_id', '=',  $allow_data['tag_id']];
 
-       
+            // 将一个数组嵌套到另一个数组
+            $where_data[] = $tag_id_where;
+        }
+
         //防止空条件导致结果返回空模型对象
         if(self::isIssetOrEmptyWhereData($where_data)){
             return false;
         }
-
-        $is_nick_name_res = self::where($where_data)->select('tag_id')->first();
+       
+        $is_tag_res = self::where($where_data)->select('tag_id')->first();
+    
   
-        if ($is_nick_name_res) {
+      
+        if ($is_tag_res) {
             return true;
         }
 
@@ -243,7 +244,7 @@ class Tag extends BaseModel
     /**
      * 新增标签
      * @param $data 标签数据
-     * @return int 0：$data为空，1：email重复，2.nick_name重复，3：成功新增，4.失败
+     * @return int 0：$data为空，1：email重复，2.tag_name重复，3：成功新增，4.失败
      */
     public static function addTag($data)
     {
@@ -252,50 +253,14 @@ class Tag extends BaseModel
         }
         $allow_data = $data;
         
-        // 判断该昵称标签或邮箱标签是否存在   true 是， false 否
-        $is_nick_name_tag_exist_result = self::isTagNameExist($allow_data['email']);
+        // 判断该标签名称是否存在   true 是， false 否
+        $is_tag_name_exist_result = self::isTagNameExist(['tag_name'=>$allow_data['tag_name']]);
         
-        if($is_nick_name_tag_exist_result) {
+        if($is_tag_name_exist_result) {
         
-            return '请勿重复添加！';
+            return '请勿重复添加标签名称！';
     
         }
-
-
-        // -email重复性验证
-
-        $where_data=[];
-
-          // 当$allow_data['email'] 已定义，且 $allow_data['email']不为空时，进入 true 分支
-          if (isset($allow_data['email']) && !empty($allow_data['email'])) {
-            $email_where = ['email', '=',  $allow_data['email']];
-
-            // 将一个数组嵌套到另一个数组
-            $where_data[] = $email_where;
-            //优化mysql查询,如果只是判断数据是否存在,用exists查询并只返回id是最快的？
-            $is_repeat_email_res = self::where($where_data)->select('tag_id')->exists();
-
-            if ($is_repeat_email_res) { //如果有数据说明email已注册
-                return 'email已注册';
-            }
-        }
-
-        // nick_name重复性验证
-
-        // 当$allow_data['nick_name'] 已定义，且 $allow_data['nick_name']不为空时，进入 true 分支
-        if (isset($allow_data['nick_name']) && !empty($allow_data['nick_name'])) {
-            $nick_name_where = ['nick_name', '=',  $allow_data['nick_name']];
-
-            // 将一个数组嵌套到另一个数组
-            $where_data[] = $nick_name_where;
-            //优化mysql查询,如果只是判断数据是否存在,用exists查询并只返回id是最快的？
-            $is_repeat_nick_name_res = self::where($where_data)->select('tag_id')->exists();
-
-            if ($is_repeat_nick_name_res) { //如果有数据说明nick_name已存在
-                return 'nick_name已存在';
-            }
-        }
-
 
         $res = self::create($allow_data); //使用create方法新增标签
         // 添加成功
@@ -312,7 +277,7 @@ class Tag extends BaseModel
      * @param $data 标签数据 ,$access_token 访问令牌
      * @return int 0：$data为空，true：成功编辑，false.失败
      */
-    public static function editTag($data,$access_token)
+    public static function editTag($data)
     {
         if (empty($data)) { //如果$data为空直接返回
             return 0;
@@ -340,14 +305,31 @@ class Tag extends BaseModel
             return '已修改数据,请勿重复操作!';
         }
 
+        // 当$edit_info['tag_name'] 已定义，且 $allow_data['tag_name']不为空时，进入 true 分支
+        if (isset($edit_info['tag_name']) && !empty($edit_info['tag_name'])) {
+            // 判断该标签名称是否存在   true 是， false 否
+        $is_tag_name_exist_result = self::isTagNameExist(['tag_name'=>$allow_data['tag_name']]);
+        
+            if($is_tag_name_exist_result) {
+            
+                return '重复标签名！';
+        
+            }
+        }
+
 
 //使用update方法更新数据 ,update 方法需要一个表示应该更新的列的列和值对数组。 update 方法返回受影响的行数。
         $edit_res=self::where('tag_id',$allow_data['tag_id'])->update($allow_data);
 
         // 编辑成功
         if ($edit_res) {
-        return true;
-
+         // 返回最新数据
+         $get_current_edit_tag_info_result = self::getCurrentTagInfo(['tag_id' => $allow_data['tag_id']]);
+         // 成功情景
+         if ($get_current_edit_tag_info_result) {
+             return $get_current_edit_tag_info_result;
+         }
+         return '没有返回最新数据！' ;
     }
         return false;
     }
